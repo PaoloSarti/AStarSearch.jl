@@ -13,8 +13,8 @@ In the Julia Pkg REPL, type: `add https://github.com/PaoloSarti/AStar.jl`
 
 ## Usage
 
-astar(start, isgoal, getneighbours, heuristic;
-          distance = defaultdistance, timeout = Inf, hashfn = defaulthash)
+`astar(start, isgoal, getneighbours, heuristic;
+          distance = defaultdistance, timeout = Inf, hashfn = defaulthash)`
 
 Execute the A* algorithm to get the best path from the start state to reach a goal condition.
 
