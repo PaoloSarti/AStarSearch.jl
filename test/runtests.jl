@@ -1,5 +1,8 @@
 using Test
 
+include("../src/a_star.jl")
+
 @testset "AStar" begin
-    include("a_startest.jl")
+  include("reachnumber.jl")
+  include("maze.jl")
 end
