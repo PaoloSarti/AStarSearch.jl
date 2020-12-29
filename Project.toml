@@ -1,0 +1,10 @@
+name = "AStar"
+uuid = "e6cbe913-2b79-4cc5-848a-e3bbf8537828"
+authors = ["Paolo Sarti <paolo.sarti93@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+
+[compat]
+DataStructures = "^1.18"
