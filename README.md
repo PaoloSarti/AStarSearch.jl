@@ -48,15 +48,19 @@ If you want to find the best path in a maze using the manhattan heuristic you ca
 using Test
 using AStar
 
+# Directions are seen as cartesian indexes so that they can be added to a position to get the next position
 UP = CartesianIndex(-1, 0)
 DOWN = CartesianIndex(1, 0)
 LEFT = CartesianIndex(0, -1)
 RIGHT = CartesianIndex(0, 1)
 DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
+# manthattan distance between positions in the maze matrix
 manhattan(a::CartesianIndex, b::CartesianIndex) = sum(abs.((b - a).I))
+# check to be in the maze and filter out moves that go into walls
 getmazeneighbours(maze, state) = filter(x -> (1 <= x[1] <= size(maze)[1]) && (1 <= x[2] <= size(maze)[2]) && (!maze[x]), [state + d for d in DIRECTIONS])
 
+# 0 = free cell, 1 = wall
 maze = [0 0 1 0 0;
         0 1 0 0 0;
         0 1 0 0 1;
@@ -85,6 +89,3 @@ res = astar(start, isgoal, getneighbours, heuristic)
     CartesianIndex(1, 5)]
 @test res.cost == 10
 ```
-
-But it's not just mazes, you can also solve puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle)!
-See in [this]("./test/15puzzle.jl") test as an example 
