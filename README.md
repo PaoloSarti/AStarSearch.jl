@@ -8,6 +8,9 @@ The type of the state is totally unrestricted, just provide the functions that g
 
 This package was inspired by [this](https://www.npmjs.com/package/a-star) JavaScript package for its generic implementation
 
+## Installation
+In the Julia Pkg REPL, type: `add https://github.com/PaoloSarti/AStar.jl`
+
 ## Usage
 
 astar(start, isgoal, getneighbours, heuristic;
@@ -36,10 +39,11 @@ The other fields are:
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time
 - `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually a string), by default it is just the identity function as the state is used directly as key
 
-### Example
-Examples can be found in the `test` folder.
+### Examples
+It's a very general algorithm so you can solve shortest paths in mazes but also all sorts of puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle).
+Both the maze example and the 15 Puzzle solver are in the `test` folder.
 
-If you need to find the best path in a maze using the manhattan heuristic you can do the following:
+If you want to find the best path in a maze using the manhattan heuristic you can do the following:
 ```julia
 using Test
 using AStar
@@ -67,6 +71,20 @@ heuristic(state) = manhattan(state, goal)
 
 res = astar(start, isgoal, getneighbours, heuristic)
 @test res.status == :success
-@test res.path ==  CartesianIndex{2}[CartesianIndex(1, 1), CartesianIndex(2, 1), CartesianIndex(3, 1), CartesianIndex(4, 1), CartesianIndex(4, 2), CartesianIndex(4, 3), CartesianIndex(3, 3), CartesianIndex(2, 3), CartesianIndex(2, 4), CartesianIndex(1, 4), CartesianIndex(1, 5)]
+@test res.path ==  CartesianIndex{2}[
+    CartesianIndex(1, 1),
+    CartesianIndex(2, 1),
+    CartesianIndex(3, 1),
+    CartesianIndex(4, 1),
+    CartesianIndex(4, 2),
+    CartesianIndex(4, 3),
+    CartesianIndex(3, 3),
+    CartesianIndex(2, 3),
+    CartesianIndex(2, 4),
+    CartesianIndex(1, 4),
+    CartesianIndex(1, 5)]
 @test res.cost == 10
 ```
+
+But it's not just mazes, you can also solve puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle)!
+See in [this]("./test/15puzzle.jl") test as an example 

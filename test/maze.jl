@@ -1,4 +1,6 @@
 
+@testset "Maze" begin
+
 UP = CartesianIndex(-1, 0)
 DOWN = CartesianIndex(1, 0)
 LEFT = CartesianIndex(0, -1)
@@ -44,4 +46,6 @@ end
   @test res.status == :nopath
   @test res.path == CartesianIndex{2}[CartesianIndex(1, 1), CartesianIndex(1, 2)]
   @test res.cost == 1
+end
+
 end
