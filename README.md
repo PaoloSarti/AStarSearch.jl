@@ -6,7 +6,7 @@ This module exports the `astar` function that provides a generic implementation 
 The type of the state is totally unrestricted, just provide the functions that give neighbour states and an heuristic given a state and the algorithm will find the best path.
 
 
-This package was inspired by [this](https://www.npmjs.com/package/a-star) implementation in JavaScript for its generic implementation
+This package was inspired by [this](https://www.npmjs.com/package/a-star) JavaScript package for its generic implementation
 
 ## Usage
 
@@ -35,3 +35,38 @@ The other fields are:
 - `distance`: a function that takes the current state and a neighbour and returns the cost to do that state transition. By default all transitions cost 1
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time
 - `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually a string), by default it is just the identity function as the state is used directly as key
+
+### Example
+Examples can be found in the `test` folder.
+
+If you need to find the best path in a maze using the manhattan heuristic you can do the following:
+```julia
+using Test
+using AStar
+
+UP = CartesianIndex(-1, 0)
+DOWN = CartesianIndex(1, 0)
+LEFT = CartesianIndex(0, -1)
+RIGHT = CartesianIndex(0, 1)
+DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
+
+manhattan(a::CartesianIndex, b::CartesianIndex) = sum(abs.((b - a).I))
+getmazeneighbours(maze, state) = filter(x -> (1 <= x[1] <= size(maze)[1]) && (1 <= x[2] <= size(maze)[2]) && (!maze[x]), [state + d for d in DIRECTIONS])
+
+maze = [0 0 1 0 0;
+        0 1 0 0 0;
+        0 1 0 0 1;
+        0 0 0 1 1;
+        1 0 1 0 0] .== 1
+start = CartesianIndex(1, 1)
+goal = CartesianIndex(1, 5)
+
+isgoal(state) = state == goal
+getneighbours(state) = getmazeneighbours(maze, state)
+heuristic(state) = manhattan(state, goal)
+
+res = astar(start, isgoal, getneighbours, heuristic)
+@test res.status == :success
+@test res.path ==  CartesianIndex{2}[CartesianIndex(1, 1), CartesianIndex(2, 1), CartesianIndex(3, 1), CartesianIndex(4, 1), CartesianIndex(4, 2), CartesianIndex(4, 3), CartesianIndex(3, 3), CartesianIndex(2, 3), CartesianIndex(2, 4), CartesianIndex(1, 4), CartesianIndex(1, 5)]
+@test res.cost == 10
+```
