@@ -1,4 +1,4 @@
-module AStar
+module AStarSearch
 export astar
 
 include("a_star.jl")

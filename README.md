@@ -1,6 +1,6 @@
-# AStar.jl
-[![Build Status](https://github.com/PaoloSarti/AStar.jl/workflows/CI/badge.svg)](https://github.com/PaoloSarti/AStar.jl/actions?query=workflow%3ACI+branch%3Amaster)
-[![codecov](https://codecov.io/gh/PaoloSarti/AStar.jl/branch/main/graph/badge.svg?token=So4UrAd64G)](https://codecov.io/gh/PaoloSarti/AStar.jl)
+# AStarSearch.jl
+[![Build Status](https://github.com/PaoloSarti/AStarSearch.jl/workflows/CI/badge.svg)](https://github.com/PaoloSarti/AStarSearch.jl/actions?query=workflow%3ACI+branch%3Amaster)
+[![codecov](https://codecov.io/gh/PaoloSarti/AStarSearch.jl/branch/main/graph/badge.svg?token=So4UrAd64G)](https://codecov.io/gh/PaoloSarti/AStarSearch.jl)
 
 
 [A* Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) in Julia.
