@@ -8,6 +8,18 @@ struct State
 end
 
 Base.copy(s::State) = State(copy(s.table))
+Base.isequal(s1::State, s2::State) = s1.table == s2.table
+
+function hashstate(s::State)
+  # the entire board state can be compressed in a single 64 bit UInt
+  h = UInt64(0)
+  # by column
+  for j in 1:4, i in 1:4
+    h += s.table[i, j]
+    h <<= 4
+  end
+  return h
+end
 
 GOALSTATE = State([
   1  2  3  4;
@@ -68,7 +80,7 @@ function heuristicmanhattanandswaps(s::State)
 end
 
 @testset "Test goal" begin
-  res = astar(GOALSTATE, isgoal, nextstates, heuristicmanhattanandswaps)
+  res = astar(GOALSTATE, isgoal, nextstates, heuristicmanhattanandswaps, hashfn=hashstate)
   @test res.status == :success
   @test map(x -> x.table, res.path) == [
     Int8[1 2 3 4; 5 6 7 8; 9 10 11 12; 13 14 15 0]
@@ -84,7 +96,7 @@ end
    13  10  14  15
   ])
 
-  res = astar(start, isgoal, nextstates, heuristicmanhattanandswaps)
+  res = astar(start, isgoal, nextstates, heuristicmanhattanandswaps, hashfn=hashstate)
   @test res.status == :success
   @test map(x -> x.table, res.path) == [
     Int8[1 2 3 4; 5 7 11 8; 9 6 0 12; 13 10 14 15],

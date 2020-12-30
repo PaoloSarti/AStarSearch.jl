@@ -9,7 +9,7 @@ DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
 manhattan(a::CartesianIndex, b::CartesianIndex) = sum(abs.((b - a).I))
 getmazeneighbours(maze, state) = filter(x -> (1 <= x[1] <= size(maze)[1]) && (1 <= x[2] <= size(maze)[2]) && (!maze[x]), [state + d for d in DIRECTIONS])
-  
+
 @testset "Maze goal reachable" begin
   maze = [0 0 1 0 0;
           0 1 0 0 0;

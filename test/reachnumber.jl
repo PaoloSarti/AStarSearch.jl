@@ -36,7 +36,7 @@ end
   getneighbours(state) = [state + 2, state + 1]
   heuristic(state) = goal - state
 
-  res = astar(start, isgoal, getneighbours, heuristic, timeout=0)
+  res = astar(start, isgoal, getneighbours, heuristic, timeout=-1) # timeout immediately
   @test res.status == :timeout
   @test res.path == [1]
   @test res.cost == 0
