@@ -41,7 +41,7 @@ The other fields are:
 - `heuristic`: a function that given a state returns an estimate of the distance to the goal. This estimate should be optimistic if you want to be sure to get the best path.
 - `distance`: a function that takes the current state and a neighbour and returns the cost to do that state transition. By default all transitions cost 1
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time
-- `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually a string), by default it is just the identity function as the state is used directly as key
+- `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually a String or a UInt or Int) such that hashfn(s1) == hashfn(s2) if s1 == s2, by default it is just the identity function as the state is used directly as key
 
 ### Examples
 It's a very general algorithm so you can solve shortest paths in mazes but also all sorts of puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle).
