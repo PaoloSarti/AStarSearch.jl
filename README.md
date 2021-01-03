@@ -13,7 +13,7 @@ The type of the state is totally unrestricted, just provide the functions that g
 This package was inspired by [this](https://www.npmjs.com/package/a-star) JavaScript package for its generic implementation
 
 ## Installation
-In the Julia Pkg REPL, type: `add https://github.com/PaoloSarti/AStarSearch.jl`
+In the Julia Pkg REPL, type: `add AStarSearch`
 
 ## Usage
 
