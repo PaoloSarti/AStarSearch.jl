@@ -6,4 +6,5 @@ include("../src/a_star.jl")
   include("reachnumber.jl")
   include("maze.jl")
   include("15puzzle.jl")
+  include("collatz.jl")
 end

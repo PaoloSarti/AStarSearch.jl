@@ -18,9 +18,10 @@ In the Julia Pkg REPL, type: `add AStarSearch`
 ## Usage
 
 `astar(start, isgoal, getneighbours, heuristic;
-          distance = defaultdistance, timeout = Inf, hashfn = defaulthash)`
+          cost = defaultcost, timeout = Inf, hashfn = defaulthash, maxcost = Inf, maxdepth = Inf)`
 
 Execute the A* algorithm to get the best path from the start state to reach a goal condition.
+Only the first 4 arguments are mandatory, all the others are optional.
 
 ### Result
 It returns a structure in which the `status` field is a Symbol that can be either:
@@ -31,17 +32,19 @@ It returns a structure in which the `status` field is a Symbol that can be eithe
 The other fields are:
 - `path`: an array of states from the start state to the goal or the best found state
 - `cost`: the cost of the returned path
-- `exploredstates`: how many states the algorithm tested if they were a goal (size of the closed set)
+- `closedsetsize`: how many states the algorithm tested if they were a goal (size of the closed set)
 - `opensetsize`: how many states were still in the open set when the algorithm ended
 
 ### Arguments
 - `start`: the starting state, the type of the state is completely unrestricted
 - `isgoal`: a function to evaluate if a state satisfies a goal condition
 - `getneighbours`: a function that takes a state and returns the neighbour states as an array (or iterable)
-- `heuristic`: a function that given a state returns an estimate of the distance to the goal. This estimate should be optimistic if you want to be sure to get the best path.
-- `distance`: a function that takes the current state and a neighbour and returns the cost to do that state transition. By default all transitions cost 1
-- `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time
-- `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually a String or a UInt or Int) such that hashfn(s1) == hashfn(s2) if s1 == s2, by default it is just the identity function as the state is used directly as key
+- `heuristic`: a function that given a state returns an estimate of the cost to reach goal. This estimate should be optimistic if you want to be sure to get the best path. Notice that the best path could be very expensive to find, so if you want a good but not guaranteed optimal path, you could multiply your heuristic by a constant, the algorithm will usually be much faster
+- `cost`: a function that takes the current state and a neighbour and returns the cost to do that state transition. By default all transitions cost 1
+- `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
+- `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is just the identity function as the state is used directly as key. This is a very important field for composite states in order to avoid duplications
+- `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
+- `maxdepth`: the maximum depth the algorithm is allowed to go down while expanding the search state, the same considerations as the `maxcost` parameter apply. By default it is Inf
 
 ### Examples
 It's a very general algorithm so you can solve shortest paths in mazes but also all sorts of puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle).

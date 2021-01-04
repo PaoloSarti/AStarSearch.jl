@@ -56,16 +56,16 @@ end
   @test res.cost == 2
 end
 
-@testset "Distance argument" begin
+@testset "Cost argument" begin
   start = 0
   goal = 10
 
   isgoal(state) = state == goal
   getneighbours(state) = [state - 1, state + 1]
   heuristic(state) = abs(goal - state)
-  distance(a, b) = a % 2 == 0 ? abs(b - a) : 2 * abs(b - a)
+  cost(a, b) = a % 2 == 0 ? abs(b - a) : 2 * abs(b - a)
 
-  res = astar(start, isgoal, getneighbours, heuristic; distance)
+  res = astar(start, isgoal, getneighbours, heuristic; cost)
   @test res.status == :success
   @test res.path == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
   @test res.cost == 15
@@ -78,9 +78,9 @@ end
   isgoal(state) = state == goal
   getneighbours(state) = [state + 2, state + 1, state - 1]
   heuristic(state) = abs(goal - state)
-  distance(a, b) = b - a == 2 ? 3 : 1
+  cost(a, b) = b - a == 2 ? 3 : 1
 
-  res = astar(start, isgoal, getneighbours, heuristic; distance)
+  res = astar(start, isgoal, getneighbours, heuristic; cost)
   @test res.status == :success
   @test res.path == [1, 2, 3, 4]
   @test res.cost == 3

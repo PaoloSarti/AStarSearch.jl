@@ -110,4 +110,25 @@ end
   @test res.cost == 6
 end
 
+@testset "Test maxcost argument" begin
+  start = State([
+    1   2   3   4;
+    5   7  11   8;
+    9   6   0  12;
+   13  10  14  15
+  ])
+
+  res = astar(start, isgoal, nextstates, heuristicmanhattanandswaps, hashfn=hashstate, maxcost=5)
+  @test res.status == :nopath
+  @test map(x -> x.table, res.path) == [
+    Int8[1 2 3 4; 5 7 11 8; 9 6 0 12; 13 10 14 15],
+    Int8[1 2 3 4; 5 7 0 8; 9 6 11 12; 13 10 14 15],
+    Int8[1 2 3 4; 5 0 7 8; 9 6 11 12; 13 10 14 15],
+    Int8[1 2 3 4; 5 6 7 8; 9 0 11 12; 13 10 14 15],
+    Int8[1 2 3 4; 5 6 7 8; 9 10 11 12; 13 0 14 15],
+    Int8[1 2 3 4; 5 6 7 8; 9 10 11 12; 13 14 0 15]
+  ]
+  @test res.cost == 5
+end
+
 end
