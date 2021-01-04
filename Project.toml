@@ -1,7 +1,7 @@
 name = "AStarSearch"
 uuid = "e6cbe913-2b79-4cc5-848a-e3bbf8537828"
 authors = ["Paolo Sarti <paolo.sarti93@gmail.com>"]
-version = "0.1.2"
+version = "0.2.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
