@@ -14,12 +14,12 @@ mutable struct Node
 end
 
 "Results structure"
-struct AStarResult
-  status
-  path
-  cost
-  closedsetsize
-  opensetsize
+struct AStarResult{TState, TCost}
+  status::Symbol
+  path::Array{TState,1}
+  cost::TCost
+  closedsetsize::Int64
+  opensetsize::Int64
 end
 
 "order by f = g + h"
@@ -28,7 +28,7 @@ nodeorderingkey(n::Node) = n.f
 "don't perform hashing by default, rely on the state structure itself"
 defaulthash(x) = x
 
-"By default every transition from a state to each neighbour cost 1"
+"By default every transition from a state to each neighbour costs 1"
 defaultcost(s1, s2) = 1
 
 "reconstruct the path of states up to the found final node"
@@ -74,7 +74,8 @@ function astar(start, isgoal, getneighbours, heuristic;
                cost = defaultcost, timeout = Inf, hashfn = defaulthash, maxcost = Inf, maxdepth = Inf)
   starttime = time()
   startheuristic = heuristic(start)
-  startnode = Node(start, 0, zero(cost(start, start)), startheuristic, startheuristic, nothing, nothing)
+  startcost = zero(cost(start, start))
+  startnode = Node(start, 0, startcost, startheuristic, startheuristic, nothing, nothing)
   bestnode = startnode
   starthash = hashfn(start)
 
@@ -86,7 +87,7 @@ function astar(start, isgoal, getneighbours, heuristic;
 
   while !isempty(openheap)
     if time() - starttime > timeout
-      return AStarResult(:timeout, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
+      return AStarResult{typeof(start), typeof(startcost)}(:timeout, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
     end
 
     node = pop!(openheap)
@@ -94,7 +95,7 @@ function astar(start, isgoal, getneighbours, heuristic;
     delete!(opennodedict, nodehash)
 
     if isgoal(node.data)
-      return AStarResult(:success, reconstructpath(node), node.g, length(closedset), length(openheap))
+      return AStarResult{typeof(start), typeof(startcost)}(:success, reconstructpath(node), node.g, length(closedset), length(openheap))
     end
 
     push!(closedset, nodehash)
@@ -140,5 +141,5 @@ function astar(start, isgoal, getneighbours, heuristic;
     end
   end
 
-  return AStarResult(:nopath, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
+  return AStarResult{typeof(start), typeof(startcost)}(:nopath, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
 end
