@@ -5,7 +5,7 @@ neighbours(n) = n % 2 == 0 ? [n ÷ 2, 3n + 1] : [3n + 1]
 isgoal(n) = n == 1
 
 # The best case is if the number is a power of 2, then the moves are just the log2, otherwise this is a very optimistic heuristic (it doesn't overestimate)
-heuristic(n) = log2(n)
+heuristic(n) = floor(Int64, log2(n))
 
 @testset "12" begin
   start = 12
