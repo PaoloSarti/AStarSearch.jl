@@ -29,7 +29,7 @@ nodeorderingkey(n::Node) = n.f
 defaulthash(x) = x
 
 "By default every transition from a state to each neighbour costs 1"
-defaultcost(s1, s2) = 1
+defaultcost(s1, s2) = one(Int64)
 
 "reconstruct the path of states up to the found final node"
 function reconstructpath(n::Node)
