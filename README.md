@@ -96,3 +96,9 @@ res = astar(start, isgoal, getneighbours, heuristic)
     CartesianIndex(1, 5)]
 @test res.cost == 10
 ```
+
+### Breaking Changes
+#### 0.3.0
+The 0.3.0 release introduces a more strict type checking, requiring uniformity of types between the cost and the heuristics, to improve performance.  
+If you get type errors, it will probably be because by default the cost is Int64, and you provided a Float heuristic.  
+You can either provide the cost function that returns a float, or cast the heuristic to Int64.
