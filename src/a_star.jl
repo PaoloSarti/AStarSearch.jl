@@ -3,13 +3,13 @@ using DataStructures
 """Node of the state tree to explore
 
 It has to be mutable because nodes can be updated in the open set heap, and to do so we need to keep a handle of the node in the heap"""
-mutable struct Node{TState, TCost <: Number}
-  data::TState
+mutable struct Node{TCost <: Number}
+  data::Any
   depth::Int32
   g::TCost
   h::TCost
   f::TCost
-  parent::Union{Node{TState, TCost}, Nothing}
+  parent::Union{Node{TCost}, Nothing}
   heaphandle::Union{Int64,Nothing}
 end
 
@@ -80,7 +80,7 @@ function astar(start, isgoal, getneighbours, heuristic;
   starthash = hashfn(start)
 
   closedset = Set{typeof(starthash)}()
-  openheap = MutableBinaryHeap(Base.By(nodeorderingkey), Node{typeof(start), typeof(startcost)}[])
+  openheap = MutableBinaryHeap(Base.By(nodeorderingkey), Node{typeof(startcost)}[])
   starthandle = push!(openheap, startnode)
   startnode.heaphandle = starthandle
   opennodedict = Dict(starthash=>startnode)
