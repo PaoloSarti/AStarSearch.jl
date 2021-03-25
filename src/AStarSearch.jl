@@ -1,5 +1,5 @@
 module AStarSearch
-export astar
+export astar, AbstractAStarSearch, search
 
 include("a_star.jl")
 
