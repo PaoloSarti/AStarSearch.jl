@@ -3,13 +3,13 @@ using DataStructures
 """Node of the state tree to explore
 
 It has to be mutable because nodes can be updated in the open set heap, and to do so we need to keep a handle of the node in the heap"""
-mutable struct Node{TCost <: Number}
-  data::Any
+mutable struct Node{TState, TCost <: Number}
+  data::TState
   depth::Int32
   g::TCost
   h::TCost
   f::TCost
-  parent::Union{Node{TCost}, Nothing}
+  parent::Union{Node{TState, TCost}, Nothing}
   heaphandle::Union{Int64,Nothing}
 end
 
@@ -75,19 +75,21 @@ function astar(start, isgoal, getneighbours, heuristic;
   starttime = time()
   startheuristic = heuristic(start)
   startcost = zero(cost(start, start))
-  startnode = Node(start, zero(Int32), startcost, startheuristic, startheuristic, nothing, nothing)
+  nodetype = typeof(start)
+  costtype = typeof(startcost)
+  startnode = Node{nodetype, costtype}(start, zero(Int32), startcost, startheuristic, startheuristic, nothing, nothing)
   bestnode = startnode
   starthash = hashfn(start)
 
   closedset = Set{typeof(starthash)}()
-  openheap = MutableBinaryHeap(Base.By(nodeorderingkey), Node{typeof(startcost)}[])
+  openheap = MutableBinaryHeap(Base.By(nodeorderingkey), Node{nodetype, costtype}[])
   starthandle = push!(openheap, startnode)
   startnode.heaphandle = starthandle
   opennodedict = Dict(starthash=>startnode)
 
   while !isempty(openheap)
     if time() - starttime > timeout
-      return AStarResult{typeof(start), typeof(startcost)}(:timeout, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
+      return AStarResult{nodetype, costtype}(:timeout, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
     end
 
     node = pop!(openheap)
@@ -95,7 +97,7 @@ function astar(start, isgoal, getneighbours, heuristic;
     delete!(opennodedict, nodehash)
 
     if isgoal(node.data)
-      return AStarResult{typeof(start), typeof(startcost)}(:success, reconstructpath(node), node.g, length(closedset), length(openheap))
+      return AStarResult{nodetype, costtype}(:success, reconstructpath(node), node.g, length(closedset), length(openheap))
     end
 
     push!(closedset, nodehash)
@@ -133,7 +135,7 @@ function astar(start, isgoal, getneighbours, heuristic;
         end
       else
         neighbourheuristic = heuristic(neighbour)
-        neighbournode = Node(neighbour, node.depth + one(Int32), gfromthisnode, neighbourheuristic, gfromthisnode + neighbourheuristic, node, nothing)
+        neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, neighbourheuristic, gfromthisnode + neighbourheuristic, node, nothing)
         neighbourhandle = push!(openheap, neighbournode)
         neighbournode.heaphandle = neighbourhandle
         push!(opennodedict, neighbourhash => neighbournode)
@@ -141,5 +143,5 @@ function astar(start, isgoal, getneighbours, heuristic;
     end
   end
 
-  return AStarResult{typeof(start), typeof(startcost)}(:nopath, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
+  return AStarResult{nodetype, costtype}(:nopath, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
 end
