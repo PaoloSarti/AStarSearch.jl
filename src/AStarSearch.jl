@@ -1,5 +1,5 @@
 module AStarSearch
-export astar, AbstractAStarSearch, search, neighbours, heuristic, isgoal, cost
+export astar, AbstractAStarSearch, search
 
 include("a_star.jl")
 

@@ -78,7 +78,7 @@ LEFT = CartesianIndex(0, -1)
 RIGHT = CartesianIndex(0, 1)
 DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
-# manthattan distance between positions in the maze matrix
+# manhattan distance between positions in the maze matrix
 manhattan(a::CartesianIndex, b::CartesianIndex) = sum(abs.((b - a).I))
 # check to be in the maze and filter out moves that go into walls
 getmazeneighbours(maze, state) = filter(x -> (1 <= x[1] <= size(maze)[1]) && (1 <= x[2] <= size(maze)[2]) && (!maze[x]), [state + d for d in DIRECTIONS])
@@ -117,9 +117,12 @@ res = astar(start, isgoal, getneighbours, heuristic)
 Given that `manhattan` and `getmazeneighbours` are defined as above, you can design the same solution like this:
 
 ```julia
+import AStarSearch: neighbours, heuristic
+
 struct MazeSolver <: AbstractAStarSearch{CartesianIndex{2}}
   maze:: BitArray{2}
 end
+
 neighbours(ms::MazeSolver, state::CartesianIndex{2}) = getmazeneighbours(ms.maze, state)
 heuristic(ms::MazeSolver, state::CartesianIndex{2}, goal::CartesianIndex{2}) = manhattan(state, goal)
 
