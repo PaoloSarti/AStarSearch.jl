@@ -1,4 +1,5 @@
 
+# Maze solver
 UP = CartesianIndex(-1, 0)
 DOWN = CartesianIndex(1, 0)
 LEFT = CartesianIndex(0, -1)
@@ -15,3 +16,6 @@ struct MazeSolver <: AbstractAStarSearch{CartesianIndex{2}}
 end
 neighbours(ms::MazeSolver, x::CartesianIndex{2}) = filter(x -> (1 <= x[1] <= size(ms.maze)[1]) && (1 <= x[2] <= size(ms.maze)[2]) && (!ms.maze[x]), [x + d for d in DIRECTIONS])
 heuristic(ms::MazeSolver, x::CartesianIndex{2}, goal::CartesianIndex{2}) = manhattan(x, goal)
+
+# struct without implementation to test not implemented exceptions
+struct NotImplementedMethodsAstarSearch <: AbstractAStarSearch{Int64} end
