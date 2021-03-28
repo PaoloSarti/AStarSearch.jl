@@ -9,8 +9,7 @@
 This module exports the `astar` function that provides a generic implementation of the algorithm.
 The type of the state is totally unrestricted, just provide the functions that give neighbour states and an heuristic given a state and the algorithm will find the best path.
 
-
-This package was inspired by [this](https://www.npmjs.com/package/a-star) JavaScript package for its generic implementation
+To ease the definition of more complex problems in which you usually want to search from the best path from start to end, given also some parameters from the problem instance, the `AbstractAStarSearch` type is introduced. You should define the neighbour function heuristic on the instance of your concrete AStarSearch type, with also that type in the signature, and then use the `search` function on that problem instance, given the start and goal state.
 
 ## Installation
 In the Julia Pkg REPL, type: `add AStarSearch`
@@ -46,6 +45,23 @@ The other fields are:
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
 - `maxdepth`: the maximum depth the algorithm is allowed to go down while expanding the search state, the same considerations as the `maxcost` parameter apply. By default it is Inf
 
+### AbstractAStarSearch
+Abstract Type that can be subtyped by concrete structures that represent a parametrizable problem.
+
+Define a structure as subtype of AbstractAStarSearch, then you have to define:
+- `neighbours(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType)` -> returns an array of neighbour states
+- `heuristic(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType, goal::YourStateType)` -> returns an estimate of the cost to get to the end
+
+And optionally you can redefine:
+- `isgoal(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType, goal::YourStateType)` -> returns bool (by default it's current == goal)
+- `cost(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType, neighbour::YourStateType)` -> returns the cost between the current state and a neighbour (by default = 1)
+
+Then you can find the optimal path with:
+`search(aastarsearch::YourAStarSearchStruct{YourStateType}, start::YourStateType, goal::YourStateType; timeout = Inf, maxcost = Inf, maxdepth = Inf)`
+
+
+The other optional parameters are documented in the `astar` function above.
+
 ### Examples
 It's a very general algorithm so you can solve shortest paths in mazes but also all sorts of puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle).
 Both the maze example and the 15 Puzzle solver are in the `test` folder.
@@ -53,7 +69,7 @@ Both the maze example and the 15 Puzzle solver are in the `test` folder.
 If you want to find the best path in a maze using the manhattan heuristic you can do the following:
 ```julia
 using Test
-using AStar
+using AStarSearch
 
 # Directions are seen as cartesian indexes so that they can be added to a position to get the next position
 UP = CartesianIndex(-1, 0)
@@ -96,6 +112,31 @@ res = astar(start, isgoal, getneighbours, heuristic)
     CartesianIndex(1, 5)]
 @test res.cost == 10
 ```
+
+#### Maze Example by subtyping AbstractAStar
+Given that `manhattan` and `getmazeneighbours` are defined as above, you can design the same solution like this:
+
+```julia
+struct MazeSolver <: AbstractAStarSearch{CartesianIndex{2}}
+  maze:: BitArray{2}
+end
+neighbours(ms::MazeSolver, state::CartesianIndex{2}) = getmazeneighbours(ms.maze, state)
+heuristic(ms::MazeSolver, state::CartesianIndex{2}, goal::CartesianIndex{2}) = manhattan(state, goal)
+
+# 0 = free cell, 1 = wall
+maze = [0 0 1 0 0;
+        0 1 0 0 0;
+        0 1 0 0 1;
+        0 0 0 1 1;
+        1 0 1 0 0] .== 1
+mz = MazeSolver(maze)
+start = CartesianIndex(1, 1)
+goal = CartesianIndex(1, 5)
+
+res = search(mz, start, goal)
+```
+
+The same results like above are returned.
 
 ### Breaking Changes
 #### 0.3.0
