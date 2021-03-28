@@ -145,3 +145,38 @@ function astar(start, isgoal, getneighbours, heuristic;
 
   return AStarResult{nodetype, costtype}(:nopath, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
 end
+
+"""Abstract Type that can be subtyped by concrete structures that represent a parametrizable problem.
+
+Define a structure as subtype of AbstractAStarSearch, then you have to define:
+- neighbours(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType) -> Returns an array of neighbour states
+- heuristic(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType, goal::YourStateType) -> returns an estimate of the cost to get to the end
+
+And optionally you can redefine:
+- isgoal(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType, goal::YourStateType) -> returns bool (by default it's current == goal)
+- cost(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType, neighbour::YourStateType) -> returns the cost between the current state and a neighbour (by default = 1)
+
+Then you can find the optimal path with:
+search(aastarsearch::YourAStarSearchStruct{YourStateType}, start::YourStateType, goal::YourStateType; timeout = Inf, maxcost = Inf, maxdepth = Inf)
+"""
+abstract type AbstractAStarSearch{T} end
+isgoal(astarsearch::AbstractAStarSearch{T}, current::T, goal::T) where T = current == goal
+neighbours(astarsearch::AbstractAStarSearch{T}, current::T) where T = throw("neighbours not implemented! Implement it for your AbstractAStarSearch subtype!")
+heuristic(astarsearch::AbstractAStarSearch{T}, current::T, goal::T) where T = throw("heuristic not implemented! Implement it for your AbstractAStarSearch subtype!")
+cost(astarsearch::AbstractAStarSearch{T}, current::T, neighbour::T) where T = defaultcost(current, neighbour)
+
+"""search(aastarsearch::AbstractAStarSearch{T}, start::T, goal::T; timeout = Inf, maxcost = Inf, maxdepth = Inf)
+
+Once defined the AbstractAStarSearch subtype for your problem (with at least the neighbours and heuristic methods),
+execute the A* search algorithm given the problem instance, the start state and the goal state.
+
+The other optional parameters are documented in the "astar" function.
+"""
+function search(aastarsearch::AbstractAStarSearch{T}, start::T, goal::T; timeout = Inf, maxcost = Inf, maxdepth = Inf) where T
+  _isgoal(x::T) = isgoal(aastarsearch, x, goal)
+  _neighbours(x::T) = neighbours(aastarsearch, x)
+  _heuristic(x::T) = heuristic(aastarsearch, x, goal)
+  _cost(current::T, neighbour::T) = cost(aastarsearch, current, neighbour)
+  _hashfn(x::T) = hash(x)
+  return astar(start, _isgoal, _neighbours, _heuristic, cost = _cost, hashfn = _hashfn; timeout, maxcost, maxdepth)
+end
