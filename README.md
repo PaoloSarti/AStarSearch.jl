@@ -94,9 +94,9 @@ goal = CartesianIndex(1, 5)
 
 isgoal(state) = state == goal
 getneighbours(state) = getmazeneighbours(maze, state)
-heuristic(state) = manhattan(state, goal)
+mazeheuristic(state) = manhattan(state, goal)
 
-res = astar(start, isgoal, getneighbours, heuristic)
+res = astar(start, isgoal, getneighbours, mazeheuristic)
 @test res.status == :success
 @test res.path ==  CartesianIndex{2}[
     CartesianIndex(1, 1),
