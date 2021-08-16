@@ -17,7 +17,7 @@ In the Julia Pkg REPL, type: `add AStarSearch`
 ## Usage
 
 `astar(neighbours, start, goal;
-        heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)
+        heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)`
 
 Execute the A* algorithm to get the best path from the start state to reach a goal condition.
 Only the first 3 arguments are mandatory, all the others are optional.
