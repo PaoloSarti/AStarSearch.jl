@@ -8,9 +8,9 @@ struct State
 end
 
 Base.copy(s::State) = State(copy(s.table))
-Base.isequal(s1::State, s2::State) = s1.table == s2.table
+Base.:(==)(s1::State, s2::State) = s1.table == s2.table
 
-function hashstate(s::State)
+function hash(s::State)
   # the entire board state can be compressed in a single 64 bit UInt
   h = UInt64(0)
   # by column
@@ -43,8 +43,6 @@ isvalidindex(c) = (0 < c[1] < 5) && (0 < c[2] < 5)
 availablemoves(e::CartesianIndex) = [direction for direction in DIRECTIONS if isvalidindex(e + direction)]
 availablemoves(s::State) = s |> emptyposition |> availablemoves
 nextstates(s::State) = map(x -> move(s, x), availablemoves(s))
-
-isgoal(s::State) = s.table == GOALSTATE.table
 
 function move(s::State, direction::CartesianIndex)
   next = copy(s.table)
@@ -79,8 +77,11 @@ function heuristicmanhattanandswaps(s::State)
   return hm + 2swaps
 end
 
+# the goal is fixed in this problem
+heuristic(s, goal) = heuristicmanhattanandswaps(s)
+
 @testset "Test goal" begin
-  res = astar(GOALSTATE, isgoal, nextstates, heuristicmanhattanandswaps, hashfn=hashstate)
+  res = astar(nextstates, GOALSTATE, GOALSTATE, heuristic=heuristic)
   @test res.status == :success
   @test map(x -> x.table, res.path) == [
     Int8[1 2 3 4; 5 6 7 8; 9 10 11 12; 13 14 15 0]
@@ -96,7 +97,7 @@ end
    13  10  14  15
   ])
 
-  res = astar(start, isgoal, nextstates, heuristicmanhattanandswaps, hashfn=hashstate)
+  res = astar(nextstates, start, GOALSTATE, heuristic=heuristic)
   @test res.status == :success
   @test map(x -> x.table, res.path) == [
     Int8[1 2 3 4; 5 7 11 8; 9 6 0 12; 13 10 14 15],
@@ -118,7 +119,7 @@ end
    13  10  14  15
   ])
 
-  res = astar(start, isgoal, nextstates, heuristicmanhattanandswaps, hashfn=hashstate, maxcost=5)
+  res = astar(nextstates, start, GOALSTATE, heuristic=heuristic, maxcost=5)
   @test res.status == :nopath
   @test map(x -> x.table, res.path) == [
     Int8[1 2 3 4; 5 7 11 8; 9 6 0 12; 13 10 14 15],

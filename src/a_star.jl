@@ -25,11 +25,13 @@ end
 "order by f = g + h"
 nodeorderingkey(n::Node) = n.f
 
-"don't perform hashing by default, rely on the state structure itself"
-defaulthash(x) = x
-
 "By default every transition from a state to each neighbour costs 1"
 defaultcost(s1, s2) = one(Int64)
+
+"By default, the herustic returns 0 (BFS)"
+defaultheuristic(state, goal) = zero(Int64)
+
+defaultisgoal(state, goal) = state == goal
 
 "reconstruct the path of states up to the found final node"
 function reconstructpath(n::Node)
@@ -42,11 +44,11 @@ function reconstructpath(n::Node)
 end
 
 """
-  astar(start, isgoal, getneighbours, heuristic;
-          cost = defaultcost, timeout = Inf, hashfn = defaulthash, maxcost = Inf, maxdepth = Inf)
+  astar(neighbours, start, goal;
+        heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)
 
 Execute the A* algorithm to get the best path from the start state to reach a goal condition.
-Only the first 4 arguments are mandatory, all the others are optional.
+Only the first 3 arguments are mandatory, all the others are optional.
 
 It returns a structure in which the `status` field is a Symbol that can be either:
 - `:success`: the algorithm found a path from start to goal
@@ -60,20 +62,21 @@ The other fields are:
 - `opensetsize`: how many states were still in the open set when the algorithm ended
 
 # Arguments
+- `neighbours`: a function that takes a state and returns the neighbour states as an array (or iterable)
 - `start`: the starting state, the type of the state is completely unrestricted
-- `isgoal`: a function to evaluate if a state satisfies a goal condition
-- `getneighbours`: a function that takes a state and returns the neighbour states as an array (or iterable)
-- `heuristic`: a function that given a state returns an estimate of the cost to reach goal. This estimate should be optimistic if you want to be sure to get the best path. Notice that the best path could be very expensive to find, so if you want a good but not guaranteed optimal path, you could multiply your heuristic by a constant, the algorithm will usually be much faster
+- `goal`: the goal state, the type is unrestricted, usually it's the same as the start
+- `heuristic`: a function that given a state and the goal returns an estimate of the cost to reach goal. This estimate should be optimistic if you want to be sure to get the best path. Notice that the best path could be very expensive to find, so if you want a good but not guaranteed optimal path, you could multiply your heuristic by a constant, the algorithm will usually be much faster
 - `cost`: a function that takes the current state and a neighbour and returns the cost to do that state transition. By default all transitions cost 1
-- `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
+- `isgoal`: a function that takes a state and the goal and evaluates if the goal is reached (by default ==)
 - `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is just the identity function as the state is used directly as key. This is a very important field for composite states in order to avoid duplications
+- `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
 - `maxdepth`: the maximum depth the algorithm is allowed to go down while expanding the search state, the same considerations as the `maxcost` parameter apply. By default it is Inf
 """
-function astar(start, isgoal, getneighbours, heuristic;
-               cost = defaultcost, timeout = Inf, hashfn = defaulthash, maxcost = Inf, maxdepth = Inf)
+function astar(neighbours, start, goal;
+               heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)
   starttime = time()
-  startheuristic = heuristic(start)
+  startheuristic = heuristic(start, goal)
   startcost = zero(cost(start, start))
   nodetype = typeof(start)
   costtype = typeof(startcost)
@@ -96,7 +99,7 @@ function astar(start, isgoal, getneighbours, heuristic;
     nodehash = hashfn(node.data)
     delete!(opennodedict, nodehash)
 
-    if isgoal(node.data)
+    if isgoal(node.data, goal)
       return AStarResult{nodetype, costtype}(:success, reconstructpath(node), node.g, length(closedset), length(openheap))
     end
 
@@ -106,9 +109,9 @@ function astar(start, isgoal, getneighbours, heuristic;
       bestnode = node
     end
 
-    neighbours = getneighbours(node.data)
+    neighbour_states = neighbours(node.data)
 
-    for neighbour in neighbours
+    for neighbour in neighbour_states
       neighbourhash = hashfn(neighbour)
       if neighbourhash in closedset
         continue
@@ -134,7 +137,7 @@ function astar(start, isgoal, getneighbours, heuristic;
           update!(openheap, neighbournode.heaphandle, neighbournode)
         end
       else
-        neighbourheuristic = heuristic(neighbour)
+        neighbourheuristic = heuristic(neighbour, goal)
         neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, neighbourheuristic, gfromthisnode + neighbourheuristic, node, nothing)
         neighbourhandle = push!(openheap, neighbournode)
         neighbournode.heaphandle = neighbourhandle
@@ -172,11 +175,10 @@ execute the A* search algorithm given the problem instance, the start state and 
 
 The other optional parameters are documented in the "astar" function.
 """
-function search(aastarsearch::AbstractAStarSearch{T}, start::T, goal::T; timeout = Inf, maxcost = Inf, maxdepth = Inf) where T
-  _isgoal(x::T) = isgoal(aastarsearch, x, goal)
+function astar(aastarsearch::AbstractAStarSearch{T}, start::T, goal::T; hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf) where T
   _neighbours(x::T) = neighbours(aastarsearch, x)
-  _heuristic(x::T) = heuristic(aastarsearch, x, goal)
+  _heuristic(x::T, goal::T) = heuristic(aastarsearch, x, goal)
   _cost(current::T, neighbour::T) = cost(aastarsearch, current, neighbour)
-  _hashfn(x::T) = hash(x)
-  return astar(start, _isgoal, _neighbours, _heuristic, cost = _cost, hashfn = _hashfn; timeout, maxcost, maxdepth)
+  _isgoal(x::T, goal::T) = isgoal(aastarsearch, x, goal)
+  return astar(_neighbours, start, goal, heuristic=_heuristic, cost=_cost, isgoal=_isgoal; hashfn, timeout, maxcost, maxdepth)
 end

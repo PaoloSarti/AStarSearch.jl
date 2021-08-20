@@ -7,22 +7,21 @@
 
 
 This module exports the `astar` function that provides a generic implementation of the algorithm.
-The type of the state is totally unrestricted, just provide the functions that give neighbour states and an heuristic given a state and the algorithm will find the best path.
+The type of the state is totally unrestricted, just provide the functions that give neighbour states and optionally an heuristic given a state and the goal and the algorithm will find the best path.
 
-To ease the definition of more complex problems in which you usually want to search from the best path from start to end, given also some parameters from the problem instance, the `AbstractAStarSearch` type is introduced. You should define the neighbour function heuristic on the instance of your concrete AStarSearch type, with also that type in the signature, and then use the `search` function on that problem instance, given the start and goal state.
+To ease the definition of more complex problems in which you usually want to search from the best path from start to goal, given also some parameters from the problem instance, the `AbstractAStarSearch` type is introduced. You should define the neighbour function heuristic on the instance of your concrete AStarSearch type, with also that type in the signature, and then use the `astar` function on that problem instance, given the start and goal state.
 
 ## Installation
 In the Julia Pkg REPL, type: `add AStarSearch`
 
 ## Usage
 
-`astar(start, isgoal, getneighbours, heuristic;
-          cost = defaultcost, timeout = Inf, hashfn = defaulthash, maxcost = Inf, maxdepth = Inf)`
+`astar(neighbours, start, goal;
+        heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)`
 
 Execute the A* algorithm to get the best path from the start state to reach a goal condition.
-Only the first 4 arguments are mandatory, all the others are optional.
+Only the first 3 arguments are mandatory, all the others are optional.
 
-### Result
 It returns a structure in which the `status` field is a Symbol that can be either:
 - `:success`: the algorithm found a path from start to goal
 - `:timeout`: the algorithm timed out, a partial path to the best state is returned in the `path` field
@@ -34,14 +33,15 @@ The other fields are:
 - `closedsetsize`: how many states the algorithm tested if they were a goal (size of the closed set)
 - `opensetsize`: how many states were still in the open set when the algorithm ended
 
-### Arguments
+## Arguments
+- `neighbours`: a function that takes a state and returns the neighbour states as an array (or iterable)
 - `start`: the starting state, the type of the state is completely unrestricted
-- `isgoal`: a function to evaluate if a state satisfies a goal condition
-- `getneighbours`: a function that takes a state and returns the neighbour states as an array (or iterable)
-- `heuristic`: a function that given a state returns an estimate of the cost to reach goal. This estimate should be optimistic if you want to be sure to get the best path. Notice that the best path could be very expensive to find, so if you want a good but not guaranteed optimal path, you could multiply your heuristic by a constant, the algorithm will usually be much faster
+- `goal`: the goal state, the type is unrestricted, usually it's the same as the start
+- `heuristic`: a function that given a state and the goal returns an estimate of the cost to reach goal. This estimate should be optimistic if you want to be sure to get the best path. Notice that the best path could be very expensive to find, so if you want a good but not guaranteed optimal path, you could multiply your heuristic by a constant, the algorithm will usually be much faster
 - `cost`: a function that takes the current state and a neighbour and returns the cost to do that state transition. By default all transitions cost 1
-- `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
+- `isgoal`: a function that takes a state and the goal and evaluates if the goal is reached (by default ==)
 - `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is just the identity function as the state is used directly as key. This is a very important field for composite states in order to avoid duplications
+- `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
 - `maxdepth`: the maximum depth the algorithm is allowed to go down while expanding the search state, the same considerations as the `maxcost` parameter apply. By default it is Inf
 
@@ -57,7 +57,7 @@ And optionally you can redefine:
 - `cost(astarsearch::YourAStarSearchStruct{YourStateType}, current::YourStateType, neighbour::YourStateType)` -> returns the cost between the current state and a neighbour (by default = 1)
 
 Then you can find the optimal path with:
-`search(aastarsearch::YourAStarSearchStruct{YourStateType}, start::YourStateType, goal::YourStateType; timeout = Inf, maxcost = Inf, maxdepth = Inf)`
+`astar(aastarsearch::YourAStarSearchStruct{YourStateType}, start::YourStateType, goal::YourStateType; timeout = Inf, maxcost = Inf, maxdepth = Inf)`
 
 
 The other optional parameters are documented in the `astar` function above.
@@ -92,11 +92,12 @@ maze = [0 0 1 0 0;
 start = CartesianIndex(1, 1)
 goal = CartesianIndex(1, 5)
 
-isgoal(state) = state == goal
-getneighbours(state) = getmazeneighbours(maze, state)
-mazeheuristic(state) = manhattan(state, goal)
+function solvemaze(maze, start, goal)
+  currentmazeneighbours(state) = getmazeneighbours(maze, state)
+  return astar(currentmazeneighbours, start, goal, heuristic=manhattan)
+end
 
-res = astar(start, isgoal, getneighbours, mazeheuristic)
+res = solvemaze(maze, start, goal)
 @test res.status == :success
 @test res.path ==  CartesianIndex{2}[
     CartesianIndex(1, 1),
@@ -136,7 +137,7 @@ mz = MazeSolver(maze)
 start = CartesianIndex(1, 1)
 goal = CartesianIndex(1, 5)
 
-res = search(mz, start, goal)
+res = astar(mz, start, goal)
 ```
 
 The same results like above are returned.
@@ -146,3 +147,7 @@ The same results like above are returned.
 The 0.3.0 release introduces a more strict type checking, requiring uniformity of types between the cost and the heuristics, to improve performance.  
 If you get type errors, it will probably be because by default the cost is Int64, and you provided a Float heuristic.  
 You can either provide the cost function that returns a float, or cast the heuristic to Int64.
+
+#### 0.4.0
+Since this release the base `astar` API changes, requiring the `neighbours` function as the first argument, and the second and third argument are the starting state and the goal state. All the other functions, `heuristic`, `cost`, and `isgoal`, are optional keyword arguments, and they now all expect 2 arguments (current state and goal/next state in the case of the `cost` function).
+The subtyping API is the same, but the main method was renamed `astar`, instead of `search`
