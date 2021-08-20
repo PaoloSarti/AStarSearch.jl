@@ -94,7 +94,7 @@ goal = CartesianIndex(1, 5)
 
 function solvemaze(maze, start, goal)
   currentmazeneighbours(state) = getmazeneighbours(maze, state)
-  return astar(currentmazeneighbours, start, goal)
+  return astar(currentmazeneighbours, start, goal, heuristic=manhattan)
 end
 
 res = solvemaze(maze, start, goal)
@@ -147,3 +147,7 @@ The same results like above are returned.
 The 0.3.0 release introduces a more strict type checking, requiring uniformity of types between the cost and the heuristics, to improve performance.  
 If you get type errors, it will probably be because by default the cost is Int64, and you provided a Float heuristic.  
 You can either provide the cost function that returns a float, or cast the heuristic to Int64.
+
+#### 0.4.0
+Since this release the base `astar` API changes, requiring the `neighbours` function as the first argument, and the second and third argument are the starting state and the goal state. All the other functions, `heuristic`, `cost`, and `isgoal`, are optional keyword arguments, and they now all expect 2 arguments (current state and goal/next state in the case of the `cost` function).
+The subtyping API is the same, but the main method was renamed `astar`, instead of `search`
