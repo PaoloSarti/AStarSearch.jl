@@ -2,6 +2,18 @@
 
 heuristic(state, goal) = abs(goal - state)
 
+@testset "ReachNumberGoalDefaultHeuristic" begin
+  start = 0
+  goal = 10
+
+  getneighbours(state) = [state - 1, state + 1]
+
+  res = astar(getneighbours, start, goal)
+  @test res.status == :success
+  @test res.path == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  @test res.cost == 10
+end
+
 @testset "ReachNumberGoal" begin
   start = 0
   goal = 10
