@@ -2,7 +2,7 @@ using DataStructures
 
 """Node of the state tree to explore
 
-It has to be mutable because nodes can be updated in the open set heap, and to do so we need to keep a handle of the node in the heap"""
+It has to be mutable because the cost could change if a shorter path is found"""
 mutable struct Node{TState, TCost <: Number}
   data::TState
   depth::Int32
@@ -10,7 +10,6 @@ mutable struct Node{TState, TCost <: Number}
   h::TCost
   f::TCost
   parent::Union{Node{TState, TCost}, Nothing}
-  heaphandle::Union{Int64,Nothing}
 end
 
 "Results structure"
@@ -80,15 +79,14 @@ function astar(neighbours, start, goal;
   startcost = zero(cost(start, start))
   nodetype = typeof(start)
   costtype = typeof(startcost)
-  startnode = Node{nodetype, costtype}(start, zero(Int32), startcost, startheuristic, startheuristic, nothing, nothing)
+  startnode = Node{nodetype, costtype}(start, zero(Int32), startcost, startheuristic, startheuristic, nothing)
   bestnode = startnode
   starthash = hashfn(start)
 
   closedset = Set{typeof(starthash)}()
   openheap = MutableBinaryHeap(Base.By(nodeorderingkey), Node{nodetype, costtype}[])
   starthandle = push!(openheap, startnode)
-  startnode.heaphandle = starthandle
-  opennodedict = Dict(starthash=>startnode)
+  opennodedict = Dict(starthash=>starthandle)
 
   while !isempty(openheap)
     if time() - starttime > timeout
@@ -128,20 +126,20 @@ function astar(neighbours, start, goal;
       end
 
       if neighbourhash in keys(opennodedict)
-        neighbournode = opennodedict[neighbourhash]
+        neighbournodehandle = opennodedict[neighbourhash]
+        neighbournode = openheap[neighbournodehandle]
         if gfromthisnode < neighbournode.g
           neighbournode.depth = node.depth + one(Int32)
           neighbournode.g = gfromthisnode
           neighbournode.parent = node
           neighbournode.f = gfromthisnode + neighbournode.h
-          update!(openheap, neighbournode.heaphandle, neighbournode)
+          update!(openheap, neighbournodehandle, neighbournode)
         end
       else
         neighbourheuristic = heuristic(neighbour, goal)
-        neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, neighbourheuristic, gfromthisnode + neighbourheuristic, node, nothing)
+        neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, neighbourheuristic, gfromthisnode + neighbourheuristic, node)
         neighbourhandle = push!(openheap, neighbournode)
-        neighbournode.heaphandle = neighbourhandle
-        push!(opennodedict, neighbourhash => neighbournode)
+        push!(opennodedict, neighbourhash => neighbourhandle)
       end
     end
   end

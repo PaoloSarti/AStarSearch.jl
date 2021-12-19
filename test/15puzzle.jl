@@ -10,7 +10,7 @@ end
 Base.copy(s::State) = State(copy(s.table))
 Base.:(==)(s1::State, s2::State) = s1.table == s2.table
 
-function hash(s::State)
+function Base.hash(s::State)
   # the entire board state can be compressed in a single 64 bit UInt
   h = UInt64(0)
   # by column
