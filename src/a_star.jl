@@ -1,9 +1,7 @@
 using DataStructures
 
-"""Node of the state tree to explore
-
-It has to be mutable because the cost could change if a shorter path is found"""
-mutable struct Node{TState, TCost <: Number}
+"""Node of the state tree to explore"""
+struct Node{TState, TCost <: Number}
   data::TState
   depth::Int32
   g::TCost
@@ -39,7 +37,7 @@ function reconstructpath(n::Node)
     n = n.parent
     push!(res, n.data)
   end
-  return reverse(res)
+  return reverse!(res)
 end
 
 """
@@ -129,10 +127,7 @@ function astar(neighbours, start, goal;
         neighbournodehandle = opennodedict[neighbourhash]
         neighbournode = openheap[neighbournodehandle]
         if gfromthisnode < neighbournode.g
-          neighbournode.depth = node.depth + one(Int32)
-          neighbournode.g = gfromthisnode
-          neighbournode.parent = node
-          neighbournode.f = gfromthisnode + neighbournode.h
+          neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, neighbournode.h, gfromthisnode + neighbournode.h, node)
           update!(openheap, neighbournodehandle, neighbournode)
         end
       else
