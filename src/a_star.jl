@@ -5,7 +5,6 @@ struct Node{TState, TCost <: Number}
   data::TState
   depth::Int32
   g::TCost
-  h::TCost
   f::TCost
   parent::Union{Node{TState, TCost}, Nothing}
 end
@@ -73,11 +72,11 @@ The other fields are:
 function astar(neighbours, start, goal;
                heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)
   starttime = time()
-  startheuristic = heuristic(start, goal)
+  bestheuristic = heuristic(start, goal)
   startcost = zero(cost(start, start))
   nodetype = typeof(start)
   costtype = typeof(startcost)
-  startnode = Node{nodetype, costtype}(start, zero(Int32), startcost, startheuristic, startheuristic, nothing)
+  startnode = Node{nodetype, costtype}(start, zero(Int32), startcost, bestheuristic, nothing)
   bestnode = startnode
   starthash = hashfn(start)
 
@@ -101,7 +100,9 @@ function astar(neighbours, start, goal;
 
     push!(closedset, nodehash)
 
-    if node.h < bestnode.h
+    nodeheuristic = node.f - node.g
+    if nodeheuristic < bestheuristic
+      bestheuristic = nodeheuristic
       bestnode = node
     end
 
@@ -127,12 +128,13 @@ function astar(neighbours, start, goal;
         neighbournodehandle = opennodedict[neighbourhash]
         neighbournode = openheap[neighbournodehandle]
         if gfromthisnode < neighbournode.g
-          neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, neighbournode.h, gfromthisnode + neighbournode.h, node)
+          neighbourheuristic = neighbournode.f - neighbournode.g
+          neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, gfromthisnode + neighbourheuristic, node)
           update!(openheap, neighbournodehandle, neighbournode)
         end
       else
         neighbourheuristic = heuristic(neighbour, goal)
-        neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, neighbourheuristic, gfromthisnode + neighbourheuristic, node)
+        neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, gfromthisnode + neighbourheuristic, node)
         neighbourhandle = push!(openheap, neighbournode)
         push!(opennodedict, neighbourhash => neighbourhandle)
       end
