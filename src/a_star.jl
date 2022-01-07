@@ -64,7 +64,7 @@ The other fields are:
 - `heuristic`: a function that given a state and the goal returns an estimate of the cost to reach goal. This estimate should be optimistic if you want to be sure to get the best path. Notice that the best path could be very expensive to find, so if you want a good but not guaranteed optimal path, you could multiply your heuristic by a constant, the algorithm will usually be much faster
 - `cost`: a function that takes the current state and a neighbour and returns the cost to do that state transition. By default all transitions cost 1
 - `isgoal`: a function that takes a state and the goal and evaluates if the goal is reached (by default ==)
-- `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is the `hash` function. This is a very important field for composite states in order to avoid duplications.
+- `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is the base hash function. This is a very important field for composite states in order to avoid duplications. *WARNING* states with arrays as fields might return a different hash every time! If this is the case, please pass an hashfn that always returns the same value for the same state!
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
 - `maxdepth`: the maximum depth the algorithm is allowed to go down while expanding the search state, the same considerations as the `maxcost` parameter apply. By default it is Inf
@@ -86,7 +86,7 @@ function astar(neighbours, start, goal;
   opennodedict = Dict(starthash=>starthandle)
 
   while !isempty(openheap)
-    if time() - starttime > timeout
+    if timeout < Inf && time() - starttime > timeout
       return AStarResult{nodetype, costtype}(:timeout, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
     end
 
