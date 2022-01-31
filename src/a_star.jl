@@ -1,7 +1,7 @@
 using DataStructures
 
 """Node of the state tree to explore"""
-struct Node{TState, TCost <: Number}
+mutable struct Node{TState, TCost <: Number}
   data::TState
   depth::Int32
   g::TCost
@@ -81,9 +81,9 @@ function astar(neighbours, start, goal;
   starthash = hashfn(start)
 
   closedset = Set{typeof(starthash)}()
-  openheap = MutableBinaryHeap(Base.By(nodeorderingkey), Node{nodetype, costtype}[])
-  starthandle = push!(openheap, startnode)
-  opennodedict = Dict(starthash=>starthandle)
+  openheap = BinaryHeap(Base.By(nodeorderingkey), Node{nodetype, costtype}[])
+  push!(openheap, startnode)
+  opennodedict = Dict(starthash=>startnode)
 
   while !isempty(openheap)
     if timeout < Inf && time() - starttime > timeout
@@ -125,18 +125,21 @@ function astar(neighbours, start, goal;
       end
 
       if neighbourhash in keys(opennodedict)
-        neighbournodehandle = opennodedict[neighbourhash]
-        neighbournode = openheap[neighbournodehandle]
+        neighbournode = opennodedict[neighbourhash]
         if gfromthisnode < neighbournode.g
           neighbourheuristic = neighbournode.f - neighbournode.g
-          neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, gfromthisnode + neighbourheuristic, node)
-          update!(openheap, neighbournodehandle, neighbournode)
+          neighbournode.g = gfromthisnode
+          neighbournode.f = gfromthisnode + neighbourheuristic
+          neighbournode.depth = node.depth + one(Int32)
+          neighbournode.parent = node
+          # violating encapsulation of the BinaryHeap struct here, no heapify! is implemented to update inplace an updated array
+          heapify!(openheap.valtree, openheap.ordering)
         end
       else
         neighbourheuristic = heuristic(neighbour, goal)
         neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, gfromthisnode + neighbourheuristic, node)
-        neighbourhandle = push!(openheap, neighbournode)
-        push!(opennodedict, neighbourhash => neighbourhandle)
+        push!(openheap, neighbournode)
+        push!(opennodedict, neighbourhash => neighbournode)
       end
     end
   end
