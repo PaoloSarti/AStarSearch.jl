@@ -53,16 +53,30 @@ using Test
 using AStarSearch
 
 # Directions are seen as cartesian indexes so that they can be added to a position to get the next position
-UP = CartesianIndex(-1, 0)
-DOWN = CartesianIndex(1, 0)
-LEFT = CartesianIndex(0, -1)
-RIGHT = CartesianIndex(0, 1)
-DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
+const UP = CartesianIndex(-1, 0)
+const DOWN = CartesianIndex(1, 0)
+const LEFT = CartesianIndex(0, -1)
+const RIGHT = CartesianIndex(0, 1)
+const DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
 # manhattan distance between positions in the maze matrix
 manhattan(a::CartesianIndex, b::CartesianIndex) = sum(abs.((b - a).I))
 # check to be in the maze and filter out moves that go into walls
-getmazeneighbours(maze, state) = filter(x -> (1 <= x[1] <= size(maze)[1]) && (1 <= x[2] <= size(maze)[2]) && (!maze[x]), [state + d for d in DIRECTIONS])
+function mazeneighbours(maze, p)
+  res = CartesianIndex[]
+  for d in DIRECTIONS
+      n = p + d
+      if 1 ≤ n[1] ≤ size(maze)[1] && 1 ≤ n[2] ≤ size(maze)[2] && !maze[n]
+          push!(res, n)
+      end
+  end
+  return res
+end
+
+function solvemaze(maze, start, goal)
+  currentmazeneighbours(state) = mazeneighbours(maze, state)
+  return astar(currentmazeneighbours, start, goal, heuristic=manhattan)
+end
 
 # 0 = free cell, 1 = wall
 maze = [0 0 1 0 0;
@@ -72,11 +86,6 @@ maze = [0 0 1 0 0;
         1 0 1 0 0] .== 1
 start = CartesianIndex(1, 1)
 goal = CartesianIndex(1, 5)
-
-function solvemaze(maze, start, goal)
-  currentmazeneighbours(state) = getmazeneighbours(maze, state)
-  return astar(currentmazeneighbours, start, goal, heuristic=manhattan)
-end
 
 res = solvemaze(maze, start, goal)
 @test res.status == :success
@@ -96,14 +105,14 @@ res = solvemaze(maze, start, goal)
 ```
 
 ### Breaking Changes
-#### 0.3.0
-The 0.3.0 release introduces a more strict type checking, requiring uniformity of types between the cost and the heuristics, to improve performance.  
-If you get type errors, it will probably be because by default the cost is Int64, and you provided a Float heuristic.  
-You can either provide the cost function that returns a float, or cast the heuristic to Int64.
+#### 0.5.0
+Removed the `AbstractAStarSearch` base struct, the `astar` function is now the only supported interface by this package.
 
 #### 0.4.0
 Since this release the base `astar` API changes, requiring the `neighbours` function as the first argument, and the second and third argument are the starting state and the goal state. All the other functions, `heuristic`, `cost`, and `isgoal`, are optional keyword arguments, and they now all expect 2 arguments (current state and goal/next state in the case of the `cost` function).
 The subtyping API is the same, but the main method was renamed `astar`, instead of `search`
 
-#### 0.5.0
-Removed the `AbstractAStarSearch` base struct, the `astar` function is now the only supported interface by this package.
+#### 0.3.0
+The 0.3.0 release introduces a more strict type checking, requiring uniformity of types between the cost and the heuristics, to improve performance.  
+If you get type errors, it will probably be because by default the cost is Int64, and you provided a Float heuristic.  
+You can either provide the cost function that returns a float, or cast the heuristic to Int64.
