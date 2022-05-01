@@ -15,7 +15,7 @@ In the Julia Pkg REPL, type: `add AStarSearch`
 ## Usage
 
 `astar(neighbours, start, goal;
-       heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)`
+       heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf)`
 
 Execute the A* algorithm to get the best path from the start state to reach a goal condition.
 Only the first 3 arguments are mandatory, all the others are optional.
@@ -41,7 +41,6 @@ The other fields are:
 - `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is the base hash function. This is a very important field for composite states in order to avoid duplications. *WARNING* states with arrays as fields might return a different hash every time! If this is the case, please pass an hashfn that always returns the same value for the same state!
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
-- `maxdepth`: the maximum depth the algorithm is allowed to go down while expanding the search state, the same considerations as the `maxcost` parameter apply. By default it is Inf
 
 ### Examples
 It's a very general algorithm so you can solve shortest paths in mazes but also all sorts of puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle).
@@ -105,6 +104,9 @@ res = solvemaze(maze, start, goal)
 ```
 
 ### Breaking Changes
+#### 0.6.0
+Removed `maxdepth` parameter, to improve memory usage, as `maxcost` is more powerful.
+
 #### 0.5.0
 Removed the `AbstractAStarSearch` base struct, the `astar` function is now the only supported interface by this package.
 

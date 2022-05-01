@@ -1,13 +1,16 @@
+import Base
 using DataStructures
 
 """Node of the state tree to explore"""
 mutable struct Node{TState, TCost <: Number}
   data::TState
-  depth::Int32
   g::TCost
   f::TCost
   parent::Union{Node{TState, TCost}, Nothing}
 end
+
+Base.isequal(n1::Node, n2::Node) = Base.isequal(n1.data, n2.data)
+Base.isless(n1::Node, n2::Node) = Base.isless(n1.f, n2.f)
 
 "Results structure"
 struct AStarResult{TState, TCost <: Number}
@@ -41,7 +44,7 @@ end
 
 """
   astar(neighbours, start, goal;
-        heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)
+        heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf)
 
 Execute the A* algorithm to get the best path from the start state to reach a goal condition.
 Only the first 3 arguments are mandatory, all the others are optional.
@@ -67,22 +70,22 @@ The other fields are:
 - `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is the base hash function. This is a very important field for composite states in order to avoid duplications. *WARNING* states with arrays as fields might return a different hash every time! If this is the case, please pass an hashfn that always returns the same value for the same state!
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
-- `maxdepth`: the maximum depth the algorithm is allowed to go down while expanding the search state, the same considerations as the `maxcost` parameter apply. By default it is Inf
 """
 function astar(neighbours, start, goal;
-               heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf, maxdepth=Inf)
+               heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf)
   starttime = time()
   bestheuristic = heuristic(start, goal)
   startcost = zero(cost(start, start))
   nodetype = typeof(start)
   costtype = typeof(startcost)
-  startnode = Node{nodetype, costtype}(start, zero(Int32), startcost, bestheuristic, nothing)
+  startnode = Node{nodetype, costtype}(start, startcost, bestheuristic, nothing)
   bestnode = startnode
   starthash = hashfn(start)
 
   closedset = Set{typeof(starthash)}()
-  openheap = BinaryHeap(Base.By(nodeorderingkey), Node{nodetype, costtype}[])
-  push!(openheap, startnode)
+  ordering = Base.By(nodeorderingkey)
+  openheap = Node{nodetype, costtype}[]
+  heappush!(openheap, startnode, ordering)
   opennodedict = Dict(starthash=>startnode)
 
   while !isempty(openheap)
@@ -90,7 +93,7 @@ function astar(neighbours, start, goal;
       return AStarResult{nodetype, costtype}(:timeout, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
     end
 
-    node = pop!(openheap)
+    node = heappop!(openheap, ordering)
     nodehash = hashfn(node.data)
     delete!(opennodedict, nodehash)
 
@@ -120,25 +123,19 @@ function astar(neighbours, start, goal;
         continue
       end
 
-      if node.depth > maxdepth
-        continue
-      end
-
       if neighbourhash in keys(opennodedict)
         neighbournode = opennodedict[neighbourhash]
         if gfromthisnode < neighbournode.g
           neighbourheuristic = neighbournode.f - neighbournode.g
           neighbournode.g = gfromthisnode
           neighbournode.f = gfromthisnode + neighbourheuristic
-          neighbournode.depth = node.depth + one(Int32)
           neighbournode.parent = node
-          # violating encapsulation of the BinaryHeap struct here, no heapify! is implemented to update inplace an updated array
-          heapify!(openheap.valtree, openheap.ordering)
+          heapify!(openheap, ordering)
         end
       else
         neighbourheuristic = heuristic(neighbour, goal)
-        neighbournode = Node{nodetype, costtype}(neighbour, node.depth + one(Int32), gfromthisnode, gfromthisnode + neighbourheuristic, node)
-        push!(openheap, neighbournode)
+        neighbournode = Node{nodetype, costtype}(neighbour, gfromthisnode, gfromthisnode + neighbourheuristic, node)
+        heappush!(openheap, neighbournode, ordering)
         push!(opennodedict, neighbourhash => neighbournode)
       end
     end

@@ -34,12 +34,4 @@ end
   @test res.cost == 15
 end
 
-@testset "12 with maxdepth" begin
-  start = 12
-  res = astar(neighbours, start, 1; heuristic, maxdepth=3)
-  @test res.status == :nopath
-  @test res.path == [12, 6, 3]
-  @test res.cost == 2
-end
-
 end

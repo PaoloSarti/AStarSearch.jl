@@ -52,6 +52,23 @@ function move(s::State, direction::CartesianIndex)
   return State(next)
 end
 
+function move!(s::State, direction::CartesianIndex)
+  cur = emptyposition(s)
+  emptydest = cur + direction
+  s.table[cur], s.table[emptydest] = s.table[emptydest], s.table[cur]
+  return nothing
+end
+
+function randominitialstate(n)
+  s = copy(GOALSTATE)
+  for _ in 1:n
+    curavailablemoves = availablemoves(s)
+    selectedmove = rand(curavailablemoves)
+    move!(s, selectedmove)
+  end
+  return s
+end
+
 manhattan(c1::CartesianIndex, c2::CartesianIndex) = c1 - c2 |> x -> x.I .|> abs |> sum
 
 heuristicmanhattan(s::State) = sum(manhattan(findfirst(x -> x == i, s.table), FINALSTATEINDEXES[i]) for i in 1:15)
@@ -130,6 +147,12 @@ end
     Int8[1 2 3 4; 5 6 7 8; 9 10 11 12; 13 14 0 15]
   ]
   @test res.cost == 5
+end
+
+@testset "Test randominitialstate" begin
+  start = randominitialstate(3)
+  res = astar(nextstates, start, GOALSTATE, heuristic=heuristic, maxcost=5)
+  @test res.status == :success
 end
 
 end
