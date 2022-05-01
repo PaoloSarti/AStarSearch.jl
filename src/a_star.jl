@@ -9,7 +9,6 @@ mutable struct Node{TState, TCost <: Number}
   parent::Union{Node{TState, TCost}, Nothing}
 end
 
-Base.isequal(n1::Node, n2::Node) = Base.isequal(n1.data, n2.data)
 "order by f = g + h"
 Base.isless(n1::Node, n2::Node) = Base.isless(n1.f, n2.f)
 
