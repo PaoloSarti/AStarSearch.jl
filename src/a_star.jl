@@ -10,6 +10,7 @@ mutable struct Node{TState, TCost <: Number}
 end
 
 Base.isequal(n1::Node, n2::Node) = Base.isequal(n1.data, n2.data)
+"order by f = g + h"
 Base.isless(n1::Node, n2::Node) = Base.isless(n1.f, n2.f)
 
 "Results structure"
@@ -20,9 +21,6 @@ struct AStarResult{TState, TCost <: Number}
   closedsetsize::Int64
   opensetsize::Int64
 end
-
-"order by f = g + h"
-nodeorderingkey(n::Node) = n.f
 
 "By default every transition from a state to each neighbour costs 1"
 defaultcost(s1, s2) = one(Int64)
@@ -83,9 +81,8 @@ function astar(neighbours, start, goal;
   starthash = hashfn(start)
 
   closedset = Set{typeof(starthash)}()
-  ordering = Base.By(nodeorderingkey)
   openheap = Node{nodetype, costtype}[]
-  heappush!(openheap, startnode, ordering)
+  heappush!(openheap, startnode)
   opennodedict = Dict(starthash=>startnode)
 
   while !isempty(openheap)
@@ -93,7 +90,7 @@ function astar(neighbours, start, goal;
       return AStarResult{nodetype, costtype}(:timeout, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
     end
 
-    node = heappop!(openheap, ordering)
+    node = heappop!(openheap)
     nodehash = hashfn(node.data)
     delete!(opennodedict, nodehash)
 
@@ -130,12 +127,12 @@ function astar(neighbours, start, goal;
           neighbournode.g = gfromthisnode
           neighbournode.f = gfromthisnode + neighbourheuristic
           neighbournode.parent = node
-          heapify!(openheap, ordering)
+          heapify!(openheap)
         end
       else
         neighbourheuristic = heuristic(neighbour, goal)
         neighbournode = Node{nodetype, costtype}(neighbour, gfromthisnode, gfromthisnode + neighbourheuristic, node)
-        heappush!(openheap, neighbournode, ordering)
+        heappush!(openheap, neighbournode)
         push!(opennodedict, neighbourhash => neighbournode)
       end
     end
