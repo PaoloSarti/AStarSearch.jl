@@ -39,6 +39,12 @@ function reconstructpath(n::Node)
   return reverse!(res)
 end
 
+function astar_compatibility_warn(;kwargs...)
+  if "maxdepth" in keys(kwargs)
+    @warn "'maxdepth' is no longer supported in the astar function, use 'maxcost' instead. Ignoring it..."
+  end
+end
+
 mutable struct AStarSearchState{TState, TCost, THash}
   openheap::Vector{Node{TState, TCost}}
   opennodedict::Dict{THash, Node{TState, TCost}}
@@ -196,7 +202,10 @@ function astar(
   hashfn = hash,
   timeout = Inf,
   maxcost = Inf,
+  kwargs...,
 )
+  astar_compatibility_warn(;kwargs...)
+
   start_heuristic = heuristic(start, goal)
   start_cost = zero(start_heuristic)
   start_node = Node(start, start_cost, start_heuristic, nothing)

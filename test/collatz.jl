@@ -33,4 +33,13 @@
     @test res.path == [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]
     @test res.cost == 15
   end
+
+  @testset "maxdepth ignored" begin
+    start = 12
+
+    res = astar(neighbours, start, 1; heuristic, maxdepth = 0)
+    @test res.status == :success
+    @test res.path == [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]
+    @test res.cost == 9
+  end
 end
