@@ -15,7 +15,7 @@ Base.isless(n1::Node, n2::Node) = Base.isless(n1.f, n2.f)
 "Results structure"
 struct AStarResult{TState, TCost <: Number}
   status::Symbol
-  path::Array{TState,1}
+  path::Vector{TState}
   cost::TCost
   closedsetsize::Int64
   opensetsize::Int64
@@ -37,6 +37,124 @@ function reconstructpath(n::Node)
     push!(res, n.data)
   end
   return reverse!(res)
+end
+
+mutable struct AStarSearchState{TState, TCost, THash}
+  openheap::Vector{Node{TState, TCost}}
+  opennodedict::Dict{THash, Node{TState, TCost}}
+  closedset::Set{THash}
+  start_time::Float64
+  best_node::Node{TState, TCost}
+  best_heuristic::TCost
+
+  function AStarSearchState(
+    start_node::Node{TState, TCost},
+    start_hash::THash,
+    start_heuristic::TCost,
+  ) where {TState, TCost, THash}
+    start_time = time()
+    closedset = Set{THash}()
+    openheap = [start_node]
+    opennodedict = Dict(start_hash => start_node)
+    return new{TState, TCost, THash}(
+      openheap,
+      opennodedict,
+      closedset,
+      start_time,
+      start_node,
+      start_heuristic,
+    )
+  end
+end
+
+function _astar(
+  astar_state::AStarSearchState{TState, TCost, THash},
+  neighbours,
+  goal,
+  heuristic,
+  cost,
+  isgoal,
+  hashfn,
+  timeout,
+  maxcost,
+) where {TState, TCost, THash}
+  while !isempty(astar_state.openheap)
+    if timeout < Inf && time() - astar_state.start_time > timeout
+      return AStarResult{TState, TCost}(
+        :timeout,
+        reconstructpath(astar_state.best_node),
+        astar_state.best_node.g,
+        length(astar_state.closedset),
+        length(astar_state.openheap),
+      )
+    end
+
+    node = heappop!(astar_state.openheap)
+    nodehash = hashfn(node.data)
+    delete!(astar_state.opennodedict, nodehash)
+
+    if isgoal(node.data, goal)
+      return AStarResult{TState, TCost}(
+        :success,
+        reconstructpath(node),
+        node.g,
+        length(astar_state.closedset),
+        length(astar_state.openheap),
+      )
+    end
+
+    push!(astar_state.closedset, nodehash)
+
+    nodeheuristic = node.f - node.g
+    if nodeheuristic < astar_state.best_heuristic
+      astar_state.best_heuristic = nodeheuristic
+      astar_state.best_node = node
+    end
+
+    neighbour_states = neighbours(node.data)
+
+    for neighbour in neighbour_states
+      neighbourhash = hashfn(neighbour)
+      if neighbourhash in astar_state.closedset
+        continue
+      end
+
+      gfromthisnode = node.g + cost(node.data, neighbour)
+
+      if gfromthisnode > maxcost
+        continue
+      end
+
+      if neighbourhash in keys(astar_state.opennodedict)
+        neighbournode = astar_state.opennodedict[neighbourhash]
+        if gfromthisnode < neighbournode.g
+          neighbourheuristic = neighbournode.f - neighbournode.g
+          neighbournode.g = gfromthisnode
+          neighbournode.f = gfromthisnode + neighbourheuristic
+          neighbournode.parent = node
+          heapify!(astar_state.openheap)
+        end
+      else
+        neighbourheuristic = heuristic(neighbour, goal)
+        neighbournode = Node{TState, TCost}(
+          neighbour,
+          gfromthisnode,
+          gfromthisnode + neighbourheuristic,
+          node,
+        )
+        heappush!(astar_state.openheap, neighbournode)
+        push!(astar_state.opennodedict, neighbourhash => neighbournode)
+      end
+    end
+  end
+
+  return AStarResult{TState, TCost}(
+    :nopath,
+    reconstructpath(astar_state.best_node),
+    astar_state.best_node.g,
+    length(astar_state.closedset),
+    length(astar_state.openheap),
+  )
 end
 
 """
@@ -68,74 +186,33 @@ The other fields are:
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
 """
-function astar(neighbours, start, goal;
-               heuristic=defaultheuristic, cost=defaultcost, isgoal=defaultisgoal, hashfn=hash, timeout=Inf, maxcost=Inf)
-  starttime = time()
-  bestheuristic = heuristic(start, goal)
-  startcost = zero(cost(start, start))
-  nodetype = typeof(start)
-  costtype = typeof(startcost)
-  startnode = Node{nodetype, costtype}(start, startcost, bestheuristic, nothing)
-  bestnode = startnode
-  starthash = hashfn(start)
+function astar(
+  neighbours,
+  start,
+  goal;
+  heuristic = defaultheuristic,
+  cost = defaultcost,
+  isgoal = defaultisgoal,
+  hashfn = hash,
+  timeout = Inf,
+  maxcost = Inf,
+)
+  start_heuristic = heuristic(start, goal)
+  start_cost = zero(start_heuristic)
+  start_node = Node(start, start_cost, start_heuristic, nothing)
+  start_hash = hashfn(start)
 
-  closedset = Set{typeof(starthash)}()
-  openheap = Node{nodetype, costtype}[]
-  heappush!(openheap, startnode)
-  opennodedict = Dict(starthash=>startnode)
+  astar_state = AStarSearchState(start_node, start_hash, start_heuristic)
 
-  while !isempty(openheap)
-    if timeout < Inf && time() - starttime > timeout
-      return AStarResult{nodetype, costtype}(:timeout, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
-    end
-
-    node = heappop!(openheap)
-    nodehash = hashfn(node.data)
-    delete!(opennodedict, nodehash)
-
-    if isgoal(node.data, goal)
-      return AStarResult{nodetype, costtype}(:success, reconstructpath(node), node.g, length(closedset), length(openheap))
-    end
-
-    push!(closedset, nodehash)
-
-    nodeheuristic = node.f - node.g
-    if nodeheuristic < bestheuristic
-      bestheuristic = nodeheuristic
-      bestnode = node
-    end
-
-    neighbour_states = neighbours(node.data)
-
-    for neighbour in neighbour_states
-      neighbourhash = hashfn(neighbour)
-      if neighbourhash in closedset
-        continue
-      end
-
-      gfromthisnode = node.g + cost(node.data, neighbour)
-
-      if gfromthisnode > maxcost
-        continue
-      end
-
-      if neighbourhash in keys(opennodedict)
-        neighbournode = opennodedict[neighbourhash]
-        if gfromthisnode < neighbournode.g
-          neighbourheuristic = neighbournode.f - neighbournode.g
-          neighbournode.g = gfromthisnode
-          neighbournode.f = gfromthisnode + neighbourheuristic
-          neighbournode.parent = node
-          heapify!(openheap)
-        end
-      else
-        neighbourheuristic = heuristic(neighbour, goal)
-        neighbournode = Node{nodetype, costtype}(neighbour, gfromthisnode, gfromthisnode + neighbourheuristic, node)
-        heappush!(openheap, neighbournode)
-        push!(opennodedict, neighbourhash => neighbournode)
-      end
-    end
-  end
-
-  return AStarResult{nodetype, costtype}(:nopath, reconstructpath(bestnode), bestnode.g, length(closedset), length(openheap))
+  return _astar(
+    astar_state,
+    neighbours,
+    goal,
+    heuristic,
+    cost,
+    isgoal,
+    hashfn,
+    timeout,
+    maxcost,
+  )
 end
