@@ -42,4 +42,32 @@
     @test res.path == [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]
     @test res.cost == 9
   end
+
+  @testset "depthfirst maxdepth" begin
+    start = 12
+
+    res = depthfirst(neighbours, start, 1; maxdepth = 0)
+    @test res.status == :nopath
+    @test res.path == [start]
+    @test res.cost == 0
+  end
+
+  @testset "depthfirst timeout" begin
+    start = 12
+
+    res = depthfirst(neighbours, start, 1; timeout = 0)
+    @test res.status == :timeout
+    @test res.path == [start]
+    @test res.cost == 0
+  end
+
+
+  @testset "depthfirst success" begin
+    start = 12
+
+    res = depthfirst(neighbours, start, 1)
+    @test res.status == :success
+    @test res.path == [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]
+    @test res.cost == 9
+  end
 end

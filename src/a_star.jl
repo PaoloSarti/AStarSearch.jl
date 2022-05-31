@@ -39,7 +39,7 @@ function reconstructpath(n::Node)
   return reverse!(res)
 end
 
-function astar_compatibility_warn(;kwargs...)
+function astar_compatibility_warn(; kwargs...)
   if "maxdepth" in keys(kwargs)
     @warn "'maxdepth' is no longer supported in the astar function, use 'maxcost' instead. Ignoring it..."
   end
@@ -73,7 +73,7 @@ mutable struct AStarSearchState{TState, TCost, THash}
   end
 end
 
-function _astar(
+function _astar!(
   astar_state::AStarSearchState{TState, TCost, THash},
   neighbours,
   goal,
@@ -204,7 +204,7 @@ function astar(
   maxcost = Inf,
   kwargs...,
 )
-  astar_compatibility_warn(;kwargs...)
+  astar_compatibility_warn(; kwargs...)
 
   start_heuristic = heuristic(start, goal)
   start_cost = zero(start_heuristic)
@@ -213,7 +213,7 @@ function astar(
 
   astar_state = AStarSearchState(start_node, start_hash, start_heuristic)
 
-  return _astar(
+  return _astar!(
     astar_state,
     neighbours,
     goal,
@@ -223,5 +223,128 @@ function astar(
     hashfn,
     timeout,
     maxcost,
+  )
+end
+
+"Results structure"
+struct DepthFirstResult{TState, TCost <: Number}
+  status::Symbol
+  path::Vector{TState}
+  cost::TCost
+  closedsetsize::Int64
+end
+
+mutable struct DepthFirstSearchState{TState, TCost, THash}
+  closedset::Set{THash}
+  start_time::Float64
+  path::Vector{TState}
+  cost::TCost
+  depth::Int64
+end
+
+function _depthfirst!(
+  depthfirst_state::DepthFirstSearchState{TState, TCost, THash},
+  neighbours,
+  state,
+  goal,
+  cost,
+  isgoal,
+  hashfn,
+  timeout,
+  maxcost,
+  maxdepth,
+) where {TState, TCost, THash}
+  if isgoal(state, goal)
+    return DepthFirstResult(
+      :success,
+      depthfirst_state.path,
+      depthfirst_state.cost,
+      length(depthfirst_state.closedset),
+    )
+  end
+
+  push!(depthfirst_state.closedset, hashfn(state))
+
+  if timeout < Inf && time() - depthfirst_state.start_time > timeout
+    return DepthFirstResult(
+      :timeout,
+      depthfirst_state.path,
+      depthfirst_state.cost,
+      length(depthfirst_state.closedset),
+    )
+  end
+
+  for neighbour in neighbours(state)
+    new_depth = depthfirst_state.depth + 1
+    cost_to_neighbour = cost(state, neighbour)
+    new_cost = depthfirst_state.cost + cost_to_neighbour
+
+    if hashfn(neighbour) in depthfirst_state.closedset ||
+       new_depth > maxdepth ||
+       new_cost > maxcost
+      continue
+    end
+
+    depthfirst_state.depth = new_depth
+    depthfirst_state.cost = new_cost
+    push!(depthfirst_state.path, neighbour)
+    res = _depthfirst!(
+      depthfirst_state,
+      neighbours,
+      neighbour,
+      goal,
+      cost,
+      isgoal,
+      hashfn,
+      timeout,
+      maxcost,
+      maxdepth,
+    )
+    if res.status == :success || res.status == :timeout
+      return res
+    end
+    depthfirst_state.depth -= 1
+    depthfirst_state.cost -= cost_to_neighbour
+    pop!(depthfirst_state.path)
+  end
+
+  return DepthFirstResult(
+    :nopath,
+    depthfirst_state.path,
+    depthfirst_state.cost,
+    length(depthfirst_state.closedset),
+  )
+end
+
+function depthfirst(
+  neighbours,
+  start,
+  goal;
+  cost = defaultcost,
+  isgoal = defaultisgoal,
+  hashfn = hash,
+  timeout = Inf,
+  maxcost = Inf,
+  maxdepth = Inf,
+  kwargs...,
+)
+  start_cost = zero(cost(start, start))
+  start_time = time()
+  start_hash = hashfn(start)
+
+  depthfirst_state =
+    DepthFirstSearchState(Set{typeof(start_hash)}(), start_time, [start], start_cost, 0)
+
+  return _depthfirst!(
+    depthfirst_state,
+    neighbours,
+    start,
+    goal,
+    cost,
+    isgoal,
+    hashfn,
+    timeout,
+    maxcost,
+    maxdepth,
   )
 end
