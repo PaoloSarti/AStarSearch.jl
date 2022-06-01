@@ -61,7 +61,6 @@
     @test res.cost == 0
   end
 
-
   @testset "depthfirst success" begin
     start = 12
 

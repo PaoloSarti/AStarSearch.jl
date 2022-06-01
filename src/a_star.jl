@@ -2,15 +2,15 @@ import Base
 using DataStructures
 
 """Node of the state tree to explore"""
-mutable struct Node{TState, TCost <: Number}
+mutable struct AStarNode{TState, TCost <: Number}
   data::TState
   g::TCost
   f::TCost
-  parent::Union{Node{TState, TCost}, Nothing}
+  parent::Union{AStarNode{TState, TCost}, Nothing}
 end
 
 "order by f = g + h"
-Base.isless(n1::Node, n2::Node) = Base.isless(n1.f, n2.f)
+Base.isless(n1::AStarNode, n2::AStarNode) = Base.isless(n1.f, n2.f)
 
 "Results structure"
 struct AStarResult{TState, TCost <: Number}
@@ -30,7 +30,7 @@ defaultheuristic(state, goal) = zero(Int64)
 defaultisgoal(state, goal) = state == goal
 
 "reconstruct the path of states up to the found final node"
-function reconstructpath(n::Node)
+function reconstructpath(n::AStarNode)
   res = [n.data]
   while !isnothing(n.parent)
     n = n.parent
@@ -45,16 +45,16 @@ function astar_compatibility_warn(; kwargs...)
   end
 end
 
-mutable struct AStarSearchState{TState, TCost, THash}
-  openheap::Vector{Node{TState, TCost}}
-  opennodedict::Dict{THash, Node{TState, TCost}}
+mutable struct AStarSearchState{TState, TCost <: Number, THash}
+  openheap::Vector{AStarNode{TState, TCost}}
+  opennodedict::Dict{THash, AStarNode{TState, TCost}}
   closedset::Set{THash}
   start_time::Float64
-  best_node::Node{TState, TCost}
+  best_node::AStarNode{TState, TCost}
   best_heuristic::TCost
 
   function AStarSearchState(
-    start_node::Node{TState, TCost},
+    start_node::AStarNode{TState, TCost},
     start_hash::THash,
     start_heuristic::TCost,
   ) where {TState, TCost, THash}
@@ -83,7 +83,7 @@ function _astar!(
   hashfn,
   timeout,
   maxcost,
-) where {TState, TCost, THash}
+) where {TState, TCost <: Number, THash}
   while !isempty(astar_state.openheap)
     if timeout < Inf && time() - astar_state.start_time > timeout
       return AStarResult{TState, TCost}(
@@ -142,7 +142,7 @@ function _astar!(
         end
       else
         neighbourheuristic = heuristic(neighbour, goal)
-        neighbournode = Node{TState, TCost}(
+        neighbournode = AStarNode{TState, TCost}(
           neighbour,
           gfromthisnode,
           gfromthisnode + neighbourheuristic,
@@ -208,7 +208,7 @@ function astar(
 
   start_heuristic = heuristic(start, goal)
   start_cost = zero(start_heuristic)
-  start_node = Node(start, start_cost, start_heuristic, nothing)
+  start_node = AStarNode(start, start_cost, start_heuristic, nothing)
   start_hash = hashfn(start)
 
   astar_state = AStarSearchState(start_node, start_hash, start_heuristic)
@@ -234,7 +234,7 @@ struct DepthFirstResult{TState, TCost <: Number}
   closedsetsize::Int64
 end
 
-mutable struct DepthFirstSearchState{TState, TCost, THash}
+mutable struct DepthFirstSearchState{TState, TCost <: Number, THash}
   closedset::Set{THash}
   start_time::Float64
   path::Vector{TState}
@@ -253,7 +253,7 @@ function _depthfirst!(
   timeout,
   maxcost,
   maxdepth,
-) where {TState, TCost, THash}
+) where {TState, TCost <: Number, THash}
   if isgoal(state, goal)
     return DepthFirstResult(
       :success,
