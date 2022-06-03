@@ -43,7 +43,7 @@ function _depthfirst!(
       )
     end
 
-    if timeout < Inf && time() - search_state.start_time > timeout
+    if timeout < Inf && time() - search_state.start_time >= timeout
       return UninformedSearchResult(
         :timeout,
         reconstructpath(node),
@@ -186,7 +186,7 @@ function _breadthfirst!(
       )
     end
 
-    if timeout < Inf && time() - search_state.start_time > timeout
+    if timeout < Inf && time() - search_state.start_time >= timeout
       return UninformedSearchResult(
         :timeout,
         reconstructpath(node),

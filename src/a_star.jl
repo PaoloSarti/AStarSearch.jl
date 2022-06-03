@@ -83,7 +83,7 @@ function _astar!(
     nodehash = hashfn(node.data)
     delete!(astar_state.opennodedict, nodehash)
 
-    if timeout < Inf && time() - astar_state.start_time > timeout
+    if timeout < Inf && time() - astar_state.start_time >= timeout
       return AStarResult{TState, TCost}(
         :timeout,
         reconstructpath(astar_state.best_node),
