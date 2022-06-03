@@ -57,7 +57,7 @@
     start = 12
 
     for algo in [astar, depthfirst, breadthfirst, iterative_deepening]
-      res = algo(neighbours, start, 1; timeout = 0)
+      res = algo(neighbours, start, 1; timeout = 0.0)
       @test res.status == :timeout
       @test res.path == [start]
     end
