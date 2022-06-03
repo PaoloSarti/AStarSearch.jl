@@ -83,7 +83,7 @@ function _astar!(
   hashfn,
   timeout,
   maxcost,
-  enable_closedset
+  enable_closedset,
 ) where {TState, TCost <: Number, THash}
   while !isempty(astar_state.openheap)
     node = heappop!(astar_state.openheap)
@@ -260,7 +260,7 @@ function _depthfirst!(
   hashfn,
   timeout,
   maxdepth,
-  enable_closedset
+  enable_closedset,
 ) where {TState, THash}
   while !isempty(depthfirst_state.openset)
     node = pop!(depthfirst_state.openset)
@@ -286,7 +286,8 @@ function _depthfirst!(
     reverse!(neighbours_data)
     for neighbour in neighbours_data
       new_depth = node.depth + 1
-      if (enable_closedset && hashfn(neighbour) in depthfirst_state.closedset) || new_depth > maxdepth
+      if (enable_closedset && hashfn(neighbour) in depthfirst_state.closedset) ||
+         new_depth > maxdepth
         continue
       end
 
@@ -330,7 +331,7 @@ function depthfirst(
     hashfn,
     timeout,
     maxdepth,
-    enable_closedset
+    enable_closedset,
   )
 end
 
@@ -408,7 +409,8 @@ function _breadthfirst!(
 
     for neighbour in neighbours(node_data)
       new_depth = node.depth + 1
-      if (enable_closedset && hashfn(neighbour) in search_state.closedset) || new_depth > maxdepth
+      if (enable_closedset && hashfn(neighbour) in search_state.closedset) ||
+         new_depth > maxdepth
         continue
       end
 
@@ -452,6 +454,6 @@ function breadthfirst(
     hashfn,
     timeout,
     maxdepth,
-    enable_closedset
+    enable_closedset,
   )
 end

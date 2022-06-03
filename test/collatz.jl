@@ -75,7 +75,7 @@
     start = 12
 
     for algo in [astar, depthfirst, breadthfirst, iterative_deepening]
-      res = algo(neighbours, start, 1, enable_closedset=false)
+      res = algo(neighbours, start, 1, enable_closedset = false)
       @test res.status == :success
       @test res.closedsetsize == 0
     end
