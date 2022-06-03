@@ -4,6 +4,7 @@ defaultcost(s1, s2) = one(Int64)
 "By default, the herustic returns 0 (Breadth First Search)"
 defaultheuristic(state, goal) = zero(Int64)
 
+"By default, the goal is determined using =="
 defaultisgoal(state, goal) = state == goal
 
 "reconstruct the path of states up to the found final node"
