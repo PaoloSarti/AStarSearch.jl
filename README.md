@@ -3,11 +3,13 @@
 [![codecov](https://codecov.io/gh/PaoloSarti/AStarSearch.jl/branch/main/graph/badge.svg?token=So4UrAd64G)](https://codecov.io/gh/PaoloSarti/AStarSearch.jl)
 
 
-[A* Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) in Julia.
+[A* Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) in Julia. Other [State Space Search](https://en.wikipedia.org/wiki/State_space_search) algorithms are also implemented as a baseline.
 
 
-This module exports the `astar` function that provides a generic implementation of the algorithm.
+This package exports the `astar` function that provides a generic implementation of the algorithm.
 The type of the state is totally unrestricted, just provide the functions that give neighbour states and optionally an heuristic given a state and the goal and the algorithm will find the best path.
+
+Other implemented and exported functions to explore your state space are also exported: `depthfirst`, `breadthfirst`, `iterative_deepening`. These other functions are intended to be almost a transparent drop in replacement for the `astar` function, but they won't be able to use the heuristic.
 
 ## Installation
 In the Julia Pkg REPL, type: `add AStarSearch`
@@ -52,13 +54,13 @@ The exported functions are:
 - `iterative_deepening`
 
 #### Depth First
-The `enable_closedset` is disabled by default.
+This algorithm expands the neighbours as far as it can until there are no more neighbours for a state or the `maxdepth` limit is reached. The `enable_closedset` is enabled by default to avoid loops, but it might hide some paths to the goal if multiple paths are possible.
 
 #### Breadth First
-The `enable_closedset` is enabled by default.
+This algorithm searches first all the states at the same depth, ensuring that the best solution is always found, but it is usually slower.
 
 #### Iterative Deepening
-The `enable_closedset` is disabled by default.
+This algorithm iteratively executes depth first search at different levels of `maxdepth` having the same properties as breadth first, with almost the speed of depth first search. But also here the `enable_closedset` is disabled by default as it uses depth first internally.
 
 ### Examples
 It's a very general algorithm so you can solve shortest paths in mazes but also all sorts of puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle).
@@ -92,7 +94,7 @@ end
 
 function solvemaze(maze, start, goal
   currentmazeneighbours(state) = mazeneighbours(maze, state)
-  # Here you can use any of the exported search functions, they all share the same interface
+  # Here you can use any of the exported search functions, they all share the same interface, but they won't use the heuristic and the cost
   return astar(currentmazeneighbours, start, goal, heuristic=manhattan)
 end
 

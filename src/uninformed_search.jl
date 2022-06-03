@@ -5,6 +5,7 @@ struct UninformedSearchResult{TState}
   status::Symbol
   path::Vector{TState}
   closedsetsize::Int64
+  opensetsize::Int64
 end
 
 struct UninformedSearchNode{TState}
@@ -20,7 +21,7 @@ mutable struct DepthFirstSearchState{TState, THash}
 end
 
 function _depthfirst!(
-  depthfirst_state::DepthFirstSearchState{TState, THash},
+  search_state::DepthFirstSearchState{TState, THash},
   neighbours,
   start,
   goal,
@@ -30,22 +31,24 @@ function _depthfirst!(
   maxdepth,
   enable_closedset,
 ) where {TState, THash}
-  while !isempty(depthfirst_state.openset)
-    node = pop!(depthfirst_state.openset)
+  while !isempty(search_state.openset)
+    node = pop!(search_state.openset)
     node_data = node.data
     if isgoal(node_data, goal)
       return UninformedSearchResult(
         :success,
         reconstructpath(node),
-        length(depthfirst_state.closedset),
+        length(search_state.closedset),
+        length(search_state.openset),
       )
     end
 
-    if timeout < Inf && time() - depthfirst_state.start_time > timeout
+    if timeout < Inf && time() - search_state.start_time > timeout
       return UninformedSearchResult(
         :timeout,
         reconstructpath(node),
-        length(depthfirst_state.closedset),
+        length(search_state.closedset),
+        length(search_state.openset),
       )
     end
 
@@ -54,28 +57,32 @@ function _depthfirst!(
     reverse!(neighbours_data)
     for neighbour in neighbours_data
       new_depth = node.depth + 1
-      if (enable_closedset && hashfn(neighbour) in depthfirst_state.closedset) ||
+      if (enable_closedset && hashfn(neighbour) in search_state.closedset) ||
          new_depth > maxdepth
         continue
       end
 
       neighbour_node = UninformedSearchNode(neighbour, new_depth, node)
-      push!(depthfirst_state.openset, neighbour_node)
+      push!(search_state.openset, neighbour_node)
     end
 
     if enable_closedset
-      push!(depthfirst_state.closedset, hashfn(node_data))
+      push!(search_state.closedset, hashfn(node_data))
     end
   end
 
-  return UninformedSearchResult(:nopath, [start], length(depthfirst_state.closedset))
+  return UninformedSearchResult(
+    :nopath,
+    [start],
+    length(search_state.closedset),
+    length(search_state.openset),
+  )
 end
 
 """
 Execute a depth-first search given the neighbours function, a start and a goal.
 It takes the same parameters as astar, but it ignores those about cost and heuristic.
 Use the `maxdepth` parameter to limit the search to a certain depth.
-The `enable_closedset` parameter is by default set to false as it might cause missing valid paths to solutions
 """
 function depthfirst(
   neighbours,
@@ -85,7 +92,7 @@ function depthfirst(
   hashfn = hash,
   timeout = Inf,
   maxdepth = typemax(Int64),
-  enable_closedset = false,
+  enable_closedset = true,
   kwargs...,
 )
   start_time = time()
@@ -94,10 +101,10 @@ function depthfirst(
   start_node = UninformedSearchNode(start, 0, nothing)
   stack = Stack{typeof(start_node)}()
   push!(stack, start_node)
-  depthfirst_state = DepthFirstSearchState(stack, Set{typeof(start_hash)}(), start_time)
+  search_state = DepthFirstSearchState(stack, Set{typeof(start_hash)}(), start_time)
 
   return _depthfirst!(
-    depthfirst_state,
+    search_state,
     neighbours,
     start,
     goal,
@@ -120,12 +127,13 @@ function iterative_deepening(
   hashfn = hash,
   timeout = Inf,
   maxdepth = typemax(Int64),
-  enable_closedset = false,
+  enable_closedset = true,
   kwargs...,
 )
   start_time = time()
   end_time = start_time + timeout
   closedsetsize = 0
+  opensetsize = 0
 
   for depth = 0:maxdepth
     depth_first_timeout = max(end_time - time(), 0.0)
@@ -140,12 +148,13 @@ function iterative_deepening(
       timeout = depth_first_timeout,
       kwargs...,
     )
-    if res.status in (:success, :timout)
+    if res.status in (:success, :timeout)
       return res
     end
     closedsetsize = res.closedsetsize
+    opensetsize = res.opensetsize
   end
-  return UninformedSearchResult(:nopath, [start], closedsetsize)
+  return UninformedSearchResult(:nopath, [start], closedsetsize, opensetsize)
 end
 
 mutable struct BreadthFirstSearchState{TState, THash}
@@ -173,6 +182,7 @@ function _breadthfirst!(
         :success,
         reconstructpath(node),
         length(search_state.closedset),
+        length(search_state.openset),
       )
     end
 
@@ -181,6 +191,7 @@ function _breadthfirst!(
         :timeout,
         reconstructpath(node),
         length(search_state.closedset),
+        length(search_state.openset),
       )
     end
 
@@ -200,12 +211,15 @@ function _breadthfirst!(
     end
   end
 
-  return UninformedSearchResult(:nopath, [start], length(search_state.closedset))
+  return UninformedSearchResult(
+    :nopath,
+    [start],
+    length(search_state.closedset, length(search_state.openset)),
+  )
 end
 
 """
 Executes a breadth first search given the neightbours function, the start and goal state.
-By default it uses also a closed set to avoid visiting again already checked nodes.
 """
 function breadthfirst(
   neighbours,
