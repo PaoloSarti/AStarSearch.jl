@@ -214,7 +214,8 @@ function _breadthfirst!(
   return UninformedSearchResult(
     :nopath,
     [start],
-    length(search_state.closedset, length(search_state.openset)),
+    length(search_state.closedset),
+    length(search_state.openset),
   )
 end
 

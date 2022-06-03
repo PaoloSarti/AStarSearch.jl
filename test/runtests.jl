@@ -9,4 +9,5 @@ include("../src/a_star.jl")
   include("maze.jl")
   include("15puzzle.jl")
   include("collatz.jl")
+  include("no_path.jl")
 end
