@@ -3,11 +3,13 @@
 [![codecov](https://codecov.io/gh/PaoloSarti/AStarSearch.jl/branch/main/graph/badge.svg?token=So4UrAd64G)](https://codecov.io/gh/PaoloSarti/AStarSearch.jl)
 
 
-[A* Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) in Julia.
+[A* Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) in Julia. Other [State Space Search](https://en.wikipedia.org/wiki/State_space_search) algorithms are also implemented as a baseline.
 
 
-This module exports the `astar` function that provides a generic implementation of the algorithm.
+This package exports the `astar` function that provides a generic implementation of the algorithm.
 The type of the state is totally unrestricted, just provide the functions that give neighbour states and optionally an heuristic given a state and the goal and the algorithm will find the best path.
+
+Other implemented and exported functions to explore your state space are also exported: `depthfirst`, `breadthfirst`, `iterative_deepening`. These other functions are intended to be almost a transparent drop in replacement for the `astar` function, but they won't be able to use the heuristic.
 
 ## Installation
 In the Julia Pkg REPL, type: `add AStarSearch`
@@ -41,6 +43,24 @@ The other fields are:
 - `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is the base hash function. This is a very important field for composite states in order to avoid duplications. *WARNING* states with arrays as fields might return a different hash every time! If this is the case, please pass an hashfn that always returns the same value for the same state!
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
+- `enable_closedset`: keep track of already visited nodes to avoid visiting them again, you might want to disable this if you know there isn't any loop in the state space graph (by default true)
+
+### Uninformed Search Algorithms
+This package exports also some uninformed search algorithms to compare the performance of astar, or to use when you don't have an explicit heuristic or cost. The interface of each function is almost identical, you can use any algorithm as a drop-in replacement for `astar`, but the parameters about cost and heuristic wil be ignored (`heuristic`, `cost`, `maxcost`), they have instead a `maxdepth` parameter to limit the depth of the search.
+
+The exported functions are:
+- `depthfirst`
+- `breadthfirst`
+- `iterative_deepening`
+
+#### Depth First
+This algorithm expands the neighbours as far as it can until there are no more neighbours for a state or the `maxdepth` limit is reached. The `enable_closedset` is enabled by default to avoid loops, but it might hide some paths to the goal if multiple paths are possible.
+
+#### Breadth First
+This algorithm searches first all the states at the same depth, ensuring that the best solution is always found, but it is usually slower.
+
+#### Iterative Deepening
+This algorithm iteratively executes depth first search at different levels of `maxdepth` having the same properties as breadth first, with almost the speed of depth first search. But also here the `enable_closedset` is disabled by default as it uses depth first internally.
 
 ### Examples
 It's a very general algorithm so you can solve shortest paths in mazes but also all sorts of puzzles such as the [15 Puzzle](https://en.wikipedia.org/wiki/15_puzzle).
@@ -72,8 +92,9 @@ function mazeneighbours(maze, p)
   return res
 end
 
-function solvemaze(maze, start, goal)
+function solvemaze(maze, start, goal
   currentmazeneighbours(state) = mazeneighbours(maze, state)
+  # Here you can use any of the exported search functions, they all share the same interface, but they won't use the heuristic and the cost
   return astar(currentmazeneighbours, start, goal, heuristic=manhattan)
 end
 

@@ -42,4 +42,44 @@
     @test res.path == [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]
     @test res.cost == 9
   end
+
+  @testset "all uninformed algorithms maxdepth" begin
+    start = 12
+
+    for algorithm in [depthfirst, breadthfirst, iterative_deepening]
+      res = depthfirst(neighbours, start, 1; maxdepth = 0)
+      @test res.status == :nopath
+      @test res.path == [start]
+    end
+  end
+
+  @testset "all algorithms timeout" begin
+    start = 12
+
+    for algo in [astar, depthfirst, breadthfirst, iterative_deepening]
+      res = algo(neighbours, start, 1; timeout = 0)
+      @test res.status == :timeout
+      @test res.path == [start]
+    end
+  end
+
+  @testset "all algorithms success" begin
+    start = 12
+
+    for algo in [astar, depthfirst, breadthfirst, iterative_deepening]
+      res = algo(neighbours, start, 1)
+      @test res.status == :success
+      @test res.path == [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]
+    end
+  end
+
+  @testset "all algorithms disable closedset" begin
+    start = 12
+
+    for algo in [astar, depthfirst, breadthfirst, iterative_deepening]
+      res = algo(neighbours, start, 1, enable_closedset = false)
+      @test res.status == :success
+      @test res.closedsetsize == 0
+    end
+  end
 end

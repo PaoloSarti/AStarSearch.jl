@@ -2,15 +2,15 @@ import Base
 using DataStructures
 
 """Node of the state tree to explore"""
-mutable struct Node{TState, TCost <: Number}
+mutable struct AStarNode{TState, TCost <: Number}
   data::TState
   g::TCost
   f::TCost
-  parent::Union{Node{TState, TCost}, Nothing}
+  parent::Union{AStarNode{TState, TCost}, Nothing}
 end
 
 "order by f = g + h"
-Base.isless(n1::Node, n2::Node) = Base.isless(n1.f, n2.f)
+Base.isless(n1::AStarNode, n2::AStarNode) = Base.isless(n1.f, n2.f)
 
 "Results structure"
 struct AStarResult{TState, TCost <: Number}
@@ -21,40 +21,22 @@ struct AStarResult{TState, TCost <: Number}
   opensetsize::Int64
 end
 
-"By default every transition from a state to each neighbour costs 1"
-defaultcost(s1, s2) = one(Int64)
-
-"By default, the herustic returns 0 (Breadth First Search)"
-defaultheuristic(state, goal) = zero(Int64)
-
-defaultisgoal(state, goal) = state == goal
-
-"reconstruct the path of states up to the found final node"
-function reconstructpath(n::Node)
-  res = [n.data]
-  while !isnothing(n.parent)
-    n = n.parent
-    push!(res, n.data)
-  end
-  return reverse!(res)
-end
-
-function astar_compatibility_warn(;kwargs...)
+function astar_compatibility_warn(; kwargs...)
   if "maxdepth" in keys(kwargs)
     @warn "'maxdepth' is no longer supported in the astar function, use 'maxcost' instead. Ignoring it..."
   end
 end
 
-mutable struct AStarSearchState{TState, TCost, THash}
-  openheap::Vector{Node{TState, TCost}}
-  opennodedict::Dict{THash, Node{TState, TCost}}
+mutable struct AStarSearchState{TState, TCost <: Number, THash}
+  openheap::Vector{AStarNode{TState, TCost}}
+  opennodedict::Dict{THash, AStarNode{TState, TCost}}
   closedset::Set{THash}
   start_time::Float64
-  best_node::Node{TState, TCost}
+  best_node::AStarNode{TState, TCost}
   best_heuristic::TCost
 
   function AStarSearchState(
-    start_node::Node{TState, TCost},
+    start_node::AStarNode{TState, TCost},
     start_hash::THash,
     start_heuristic::TCost,
   ) where {TState, TCost, THash}
@@ -73,7 +55,7 @@ mutable struct AStarSearchState{TState, TCost, THash}
   end
 end
 
-function _astar(
+function _astar!(
   astar_state::AStarSearchState{TState, TCost, THash},
   neighbours,
   goal,
@@ -83,21 +65,10 @@ function _astar(
   hashfn,
   timeout,
   maxcost,
-) where {TState, TCost, THash}
+  enable_closedset,
+) where {TState, TCost <: Number, THash}
   while !isempty(astar_state.openheap)
-    if timeout < Inf && time() - astar_state.start_time > timeout
-      return AStarResult{TState, TCost}(
-        :timeout,
-        reconstructpath(astar_state.best_node),
-        astar_state.best_node.g,
-        length(astar_state.closedset),
-        length(astar_state.openheap),
-      )
-    end
-
     node = heappop!(astar_state.openheap)
-    nodehash = hashfn(node.data)
-    delete!(astar_state.opennodedict, nodehash)
 
     if isgoal(node.data, goal)
       return AStarResult{TState, TCost}(
@@ -109,7 +80,22 @@ function _astar(
       )
     end
 
-    push!(astar_state.closedset, nodehash)
+    nodehash = hashfn(node.data)
+    delete!(astar_state.opennodedict, nodehash)
+
+    if timeout < Inf && time() - astar_state.start_time > timeout
+      return AStarResult{TState, TCost}(
+        :timeout,
+        reconstructpath(astar_state.best_node),
+        astar_state.best_node.g,
+        length(astar_state.closedset),
+        length(astar_state.openheap),
+      )
+    end
+
+    if enable_closedset
+      push!(astar_state.closedset, nodehash)
+    end
 
     nodeheuristic = node.f - node.g
     if nodeheuristic < astar_state.best_heuristic
@@ -121,7 +107,7 @@ function _astar(
 
     for neighbour in neighbour_states
       neighbourhash = hashfn(neighbour)
-      if neighbourhash in astar_state.closedset
+      if enable_closedset && neighbourhash in astar_state.closedset
         continue
       end
 
@@ -142,7 +128,7 @@ function _astar(
         end
       else
         neighbourheuristic = heuristic(neighbour, goal)
-        neighbournode = Node{TState, TCost}(
+        neighbournode = AStarNode{TState, TCost}(
           neighbour,
           gfromthisnode,
           gfromthisnode + neighbourheuristic,
@@ -191,6 +177,7 @@ The other fields are:
 - `hashfn`: a function that takes a state and returns a compact representation to use as dictionary key (usually one of UInt, Int, String), by default it is the base hash function. This is a very important field for composite states in order to avoid duplications. *WARNING* states with arrays as fields might return a different hash every time! If this is the case, please pass an hashfn that always returns the same value for the same state!
 - `timeout`: timeout in number of seconds after which the algorithm stops returning the best partial path to the state with the lowest heuristic, by default it is unrestricted. Please notice that the algorithm wil run _AT LEAST_ the specified time.
 - `maxcost`: a maximum bound of the accumulated cost of the path, this can result in a :nopath result even if a path to the goal (with a greater cost) exists. By default it is Inf
+- `enable_closedset`: keep track of already visited nodes to avoid visiting them again, you might want to disable this if you know there isn't any loop in the state space graph (by default true)
 """
 function astar(
   neighbours,
@@ -202,18 +189,19 @@ function astar(
   hashfn = hash,
   timeout = Inf,
   maxcost = Inf,
+  enable_closedset = true,
   kwargs...,
 )
-  astar_compatibility_warn(;kwargs...)
+  astar_compatibility_warn(; kwargs...)
 
   start_heuristic = heuristic(start, goal)
   start_cost = zero(start_heuristic)
-  start_node = Node(start, start_cost, start_heuristic, nothing)
+  start_node = AStarNode(start, start_cost, start_heuristic, nothing)
   start_hash = hashfn(start)
 
   astar_state = AStarSearchState(start_node, start_hash, start_heuristic)
 
-  return _astar(
+  return _astar!(
     astar_state,
     neighbours,
     goal,
@@ -223,5 +211,6 @@ function astar(
     hashfn,
     timeout,
     maxcost,
+    enable_closedset,
   )
 end
