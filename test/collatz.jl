@@ -70,4 +70,14 @@
       @test res.path == [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]
     end
   end
+
+  @testset "all algorithms disable closedset" begin
+    start = 12
+
+    for algo in [astar, depthfirst, breadthfirst, iterative_deepening]
+      res = algo(neighbours, start, 1, enable_closedset=false)
+      @test res.status == :success
+      @test res.closedsetsize == 0
+    end
+  end
 end

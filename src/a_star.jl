@@ -83,6 +83,7 @@ function _astar!(
   hashfn,
   timeout,
   maxcost,
+  enable_closedset
 ) where {TState, TCost <: Number, THash}
   while !isempty(astar_state.openheap)
     node = heappop!(astar_state.openheap)
@@ -110,7 +111,9 @@ function _astar!(
       )
     end
 
-    push!(astar_state.closedset, nodehash)
+    if enable_closedset
+      push!(astar_state.closedset, nodehash)
+    end
 
     nodeheuristic = node.f - node.g
     if nodeheuristic < astar_state.best_heuristic
@@ -122,7 +125,7 @@ function _astar!(
 
     for neighbour in neighbour_states
       neighbourhash = hashfn(neighbour)
-      if neighbourhash in astar_state.closedset
+      if enable_closedset && neighbourhash in astar_state.closedset
         continue
       end
 
@@ -203,6 +206,7 @@ function astar(
   hashfn = hash,
   timeout = Inf,
   maxcost = Inf,
+  enable_closedset = true,
   kwargs...,
 )
   astar_compatibility_warn(; kwargs...)
@@ -224,6 +228,7 @@ function astar(
     hashfn,
     timeout,
     maxcost,
+    enable_closedset,
   )
 end
 
@@ -255,6 +260,7 @@ function _depthfirst!(
   hashfn,
   timeout,
   maxdepth,
+  enable_closedset
 ) where {TState, THash}
   while !isempty(depthfirst_state.openset)
     node = pop!(depthfirst_state.openset)
@@ -280,7 +286,7 @@ function _depthfirst!(
     reverse!(neighbours_data)
     for neighbour in neighbours_data
       new_depth = node.depth + 1
-      if hashfn(neighbour) in depthfirst_state.closedset || new_depth > maxdepth
+      if (enable_closedset && hashfn(neighbour) in depthfirst_state.closedset) || new_depth > maxdepth
         continue
       end
 
@@ -288,7 +294,9 @@ function _depthfirst!(
       push!(depthfirst_state.openset, neighbour_node)
     end
 
-    push!(depthfirst_state.closedset, hashfn(node_data))
+    if enable_closedset
+      push!(depthfirst_state.closedset, hashfn(node_data))
+    end
   end
 
   return UninformedSearchResult(:nopath, [start], length(depthfirst_state.closedset))
@@ -302,6 +310,7 @@ function depthfirst(
   hashfn = hash,
   timeout = Inf,
   maxdepth = typemax(Int64),
+  enable_closedset = true,
   kwargs...,
 )
   start_time = time()
@@ -321,6 +330,7 @@ function depthfirst(
     hashfn,
     timeout,
     maxdepth,
+    enable_closedset
   )
 end
 
@@ -332,6 +342,7 @@ function iterative_deepening(
   hashfn = hash,
   timeout = Inf,
   maxdepth = typemax(Int64),
+  enable_closedset = true,
   kwargs...,
 )
   start_time = time()
@@ -346,6 +357,7 @@ function iterative_deepening(
       goal;
       isgoal,
       hashfn,
+      enable_closedset,
       maxdepth = depth,
       timeout = depth_first_timeout,
       kwargs...,
@@ -373,6 +385,7 @@ function _breadthfirst!(
   hashfn,
   timeout,
   maxdepth,
+  enable_closedset,
 ) where {TState, THash}
   while !isempty(search_state.openset)
     node = popfirst!(search_state.openset)
@@ -395,7 +408,7 @@ function _breadthfirst!(
 
     for neighbour in neighbours(node_data)
       new_depth = node.depth + 1
-      if hashfn(neighbour) in search_state.closedset || new_depth > maxdepth
+      if (enable_closedset && hashfn(neighbour) in search_state.closedset) || new_depth > maxdepth
         continue
       end
 
@@ -403,7 +416,9 @@ function _breadthfirst!(
       push!(search_state.openset, neighbour_node)
     end
 
-    push!(search_state.closedset, hashfn(node_data))
+    if enable_closedset
+      push!(search_state.closedset, hashfn(node_data))
+    end
   end
 
   return UninformedSearchResult(:nopath, [start], length(search_state.closedset))
@@ -417,6 +432,7 @@ function breadthfirst(
   hashfn = hash,
   timeout = Inf,
   maxdepth = typemax(Int64),
+  enable_closedset = true,
   kwargs...,
 )
   start_time = time()
@@ -436,5 +452,6 @@ function breadthfirst(
     hashfn,
     timeout,
     maxdepth,
+    enable_closedset
   )
 end
