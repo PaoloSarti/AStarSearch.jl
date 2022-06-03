@@ -30,7 +30,7 @@ defaultheuristic(state, goal) = zero(Int64)
 defaultisgoal(state, goal) = state == goal
 
 "reconstruct the path of states up to the found final node"
-function reconstructpath(n::AStarNode)
+function reconstructpath(n)
   res = [n.data]
   while !isnothing(n.parent)
     n = n.parent
@@ -85,25 +85,26 @@ function _astar!(
   maxcost,
 ) where {TState, TCost <: Number, THash}
   while !isempty(astar_state.openheap)
-    if timeout < Inf && time() - astar_state.start_time > timeout
-      return AStarResult{TState, TCost}(
-        :timeout,
-        reconstructpath(astar_state.best_node),
-        astar_state.best_node.g,
-        length(astar_state.closedset),
-        length(astar_state.openheap),
-      )
-    end
-
     node = heappop!(astar_state.openheap)
-    nodehash = hashfn(node.data)
-    delete!(astar_state.opennodedict, nodehash)
 
     if isgoal(node.data, goal)
       return AStarResult{TState, TCost}(
         :success,
         reconstructpath(node),
         node.g,
+        length(astar_state.closedset),
+        length(astar_state.openheap),
+      )
+    end
+
+    nodehash = hashfn(node.data)
+    delete!(astar_state.opennodedict, nodehash)
+
+    if timeout < Inf && time() - astar_state.start_time > timeout
+      return AStarResult{TState, TCost}(
+        :timeout,
+        reconstructpath(astar_state.best_node),
+        astar_state.best_node.g,
         length(astar_state.closedset),
         length(astar_state.openheap),
       )
@@ -226,125 +227,99 @@ function astar(
   )
 end
 
+struct DepthFirstNode{TState}
+  data::TState
+  depth::Int64
+  parent::Union{DepthFirstNode{TState}, Nothing}
+end
+
 "Results structure"
-struct DepthFirstResult{TState, TCost <: Number}
+struct DepthFirstResult{TState}
   status::Symbol
   path::Vector{TState}
-  cost::TCost
   closedsetsize::Int64
 end
 
-mutable struct DepthFirstSearchState{TState, TCost <: Number, THash}
+mutable struct DepthFirstSearchState{TState, THash}
+  openstack::Stack{DepthFirstNode{TState}}
   closedset::Set{THash}
   start_time::Float64
-  path::Vector{TState}
-  cost::TCost
-  depth::Int64
 end
 
 function _depthfirst!(
-  depthfirst_state::DepthFirstSearchState{TState, TCost, THash},
+  depthfirst_state::DepthFirstSearchState{TState, THash},
   neighbours,
-  state,
+  start,
   goal,
-  cost,
   isgoal,
   hashfn,
   timeout,
-  maxcost,
   maxdepth,
-) where {TState, TCost <: Number, THash}
-  if isgoal(state, goal)
-    return DepthFirstResult(
-      :success,
-      depthfirst_state.path,
-      depthfirst_state.cost,
-      length(depthfirst_state.closedset),
-    )
-  end
-
-  push!(depthfirst_state.closedset, hashfn(state))
-
-  if timeout < Inf && time() - depthfirst_state.start_time > timeout
-    return DepthFirstResult(
-      :timeout,
-      depthfirst_state.path,
-      depthfirst_state.cost,
-      length(depthfirst_state.closedset),
-    )
-  end
-
-  for neighbour in neighbours(state)
-    new_depth = depthfirst_state.depth + 1
-    cost_to_neighbour = cost(state, neighbour)
-    new_cost = depthfirst_state.cost + cost_to_neighbour
-
-    if hashfn(neighbour) in depthfirst_state.closedset ||
-       new_depth > maxdepth ||
-       new_cost > maxcost
-      continue
+) where {TState, THash}
+  while !isempty(depthfirst_state.openstack)
+    node = pop!(depthfirst_state.openstack)
+    node_data = node.data
+    if isgoal(node_data, goal)
+      return DepthFirstResult(
+        :success,
+        reconstructpath(node),
+        length(depthfirst_state.closedset),
+      )
     end
 
-    depthfirst_state.depth = new_depth
-    depthfirst_state.cost = new_cost
-    push!(depthfirst_state.path, neighbour)
-    res = _depthfirst!(
-      depthfirst_state,
-      neighbours,
-      neighbour,
-      goal,
-      cost,
-      isgoal,
-      hashfn,
-      timeout,
-      maxcost,
-      maxdepth,
-    )
-    if res.status == :success || res.status == :timeout
-      return res
+    if timeout < Inf && time() - depthfirst_state.start_time > timeout
+      return DepthFirstResult(
+        :timeout,
+        reconstructpath(node),
+        length(depthfirst_state.closedset),
+      )
     end
-    depthfirst_state.depth -= 1
-    depthfirst_state.cost -= cost_to_neighbour
-    pop!(depthfirst_state.path)
+
+    neighbours_data = collect(neighbours(node_data))
+    # reverse so that the neighbours are checked in order
+    reverse!(neighbours_data)
+    for neighbour in neighbours_data
+      new_depth = node.depth + 1
+      if hashfn(neighbour) in depthfirst_state.closedset || new_depth > maxdepth
+        continue
+      end
+
+      neighbour_node = DepthFirstNode(neighbour, new_depth, node)
+      push!(depthfirst_state.openstack, neighbour_node)
+    end
+
+    push!(depthfirst_state.closedset, hashfn(node_data))
   end
 
-  return DepthFirstResult(
-    :nopath,
-    depthfirst_state.path,
-    depthfirst_state.cost,
-    length(depthfirst_state.closedset),
-  )
+  return DepthFirstResult(:nopath, [start], length(depthfirst_state.closedset))
 end
 
 function depthfirst(
   neighbours,
   start,
   goal;
-  cost = defaultcost,
   isgoal = defaultisgoal,
   hashfn = hash,
   timeout = Inf,
-  maxcost = Inf,
   maxdepth = Inf,
   kwargs...,
 )
-  start_cost = zero(cost(start, start))
   start_time = time()
   start_hash = hashfn(start)
 
-  depthfirst_state =
-    DepthFirstSearchState(Set{typeof(start_hash)}(), start_time, [start], start_cost, 0)
+  start_node = DepthFirstNode(start, 0, nothing)
+  stack = Stack{typeof(start_node)}()
+  push!(stack, start_node)
+  depthfirst_state = DepthFirstSearchState(stack, Set{typeof(start_hash)}(), start_time)
 
   return _depthfirst!(
     depthfirst_state,
     neighbours,
     start,
     goal,
-    cost,
     isgoal,
     hashfn,
     timeout,
-    maxcost,
     maxdepth,
   )
 end
