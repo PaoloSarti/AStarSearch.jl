@@ -47,7 +47,7 @@
     start = 12
 
     for algorithm in [depthfirst, breadthfirst, iterative_deepening]
-      res = depthfirst(neighbours, start, 1; maxdepth = 0)
+      res = algorithm(neighbours, start, 1; maxdepth = 0)
       @test res.status == :nopath
       @test res.path == [start]
     end

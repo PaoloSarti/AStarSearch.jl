@@ -78,13 +78,13 @@
     acc = 0
     for j = 1:3, i = 1:3
       # horizontal swap
-      if (s.table[i, j] == GOALSTATE.table[i+1, j]) &&
-         (s.table[i+1, j] == GOALSTATE.table[i, j])
+      if (s.table[i, j] == GOALSTATE.table[i + 1, j]) &&
+         (s.table[i + 1, j] == GOALSTATE.table[i, j])
         acc += 1
       end
       #vertical swap
-      if (s.table[i, j] == GOALSTATE.table[i, j+1]) &&
-         (s.table[i, j+1] == GOALSTATE.table[i, j])
+      if (s.table[i, j] == GOALSTATE.table[i, j + 1]) &&
+         (s.table[i, j + 1] == GOALSTATE.table[i, j])
         acc += 1
       end
     end

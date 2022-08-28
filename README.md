@@ -1,6 +1,7 @@
 # AStarSearch.jl
 [![Build Status](https://github.com/PaoloSarti/AStarSearch.jl/workflows/CI/badge.svg)](https://github.com/PaoloSarti/AStarSearch.jl/actions?query=workflow%3ACI+branch%3Amaster)
 [![codecov](https://codecov.io/gh/PaoloSarti/AStarSearch.jl/branch/main/graph/badge.svg?token=So4UrAd64G)](https://codecov.io/gh/PaoloSarti/AStarSearch.jl)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 
 [A* Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) in Julia. Other [State Space Search](https://en.wikipedia.org/wiki/State_space_search) algorithms are also implemented as a baseline.
@@ -92,7 +93,7 @@ function mazeneighbours(maze, p)
   return res
 end
 
-function solvemaze(maze, start, goal
+function solvemaze(maze, start, goal)
   currentmazeneighbours(state) = mazeneighbours(maze, state)
   # Here you can use any of the exported search functions, they all share the same interface, but they won't use the heuristic and the cost
   return astar(currentmazeneighbours, start, goal, heuristic=manhattan)

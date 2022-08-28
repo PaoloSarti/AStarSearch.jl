@@ -1,10 +1,30 @@
 using Test
-
-include("../src/common.jl")
-include("../src/uninformed_search.jl")
-include("../src/a_star.jl")
+using AStarSearch
+import JET
+import Aqua
+import JuliaFormatter
 
 @testset "AStar" begin
+  @test length(JET.get_reports(JET.report_package(AStarSearch))) == 0
+
+  @test JuliaFormatter.format(
+    ".",
+    indent = 2,
+    whitespace_typedefs = true,
+    whitespace_ops_in_indices = true,
+    remove_extra_newlines = true,
+    always_use_return = true,
+    whitespace_in_kwargs = true,
+    trailing_comma = true,
+    format_markdown = true,
+  )
+
+  Aqua.test_ambiguities(AStarSearch)
+  Aqua.test_project_toml_formatting(AStarSearch)
+  Aqua.test_undefined_exports(AStarSearch)
+  Aqua.test_unbound_args(AStarSearch)
+  Aqua.test_deps_compat(AStarSearch)
+
   include("reachnumber.jl")
   include("maze.jl")
   include("15puzzle.jl")
