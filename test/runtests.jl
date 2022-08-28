@@ -1,12 +1,9 @@
 using Test
 using AStarSearch
-import JET
 import Aqua
 import JuliaFormatter
 
 @testset "AStar" begin
-  @test length(JET.get_reports(JET.report_package(AStarSearch))) == 0
-
   @test JuliaFormatter.format(
     ".",
     indent = 2,
