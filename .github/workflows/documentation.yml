@@ -24,11 +24,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v1
         with:
           version: '1'
-      - uses: julia-actions/cache@v1
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Cache Julia packages
+        uses: julia-actions/cache@v1
       - name: Install dependencies
         run: |
           julia --project=docs -e '
@@ -41,8 +46,8 @@ jobs:
           DOCUMENTER_KEY: ${{ secrets.GITHUB_TOKEN }}
         run: |
           julia --project=docs docs/make.jl
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: 'docs/build'
           
