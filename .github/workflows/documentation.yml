@@ -15,53 +15,55 @@ permissions:
   id-token: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed for pushing to gh-pages branch
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
       - name: Setup Julia
         uses: julia-actions/setup-julia@v1
         with:
           version: '1'
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      - name: Cache Julia packages
-        uses: julia-actions/cache@v1
-      - name: Install dependencies
+
+      - name: Install documentation dependencies
         run: |
           julia --project=docs -e '
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
+
       - name: Build documentation
+        run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          julia --project=docs docs/make.jl
-      - name: Upload Pages artifact
+          DOCUMENTER_KEY: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs/build'
-          
-  deploy:
-    # Add a dependency to the build job
-    needs: build
+          path: docs/build
 
-    # Deploy to the github-pages environment
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
-    # Specify runner + deployment step
     runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
