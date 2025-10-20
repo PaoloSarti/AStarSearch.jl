@@ -1,6 +1,16 @@
 using DataStructures
 
-"Results structure"
+"""
+    UninformedSearchResult{TState}
+
+Result of an uninformed search algorithm (depth-first, breadth-first, or iterative deepening).
+
+# Fields
+- `status::Symbol`: Search result - `:success`, `:timeout`, or `:nopath`
+- `path::Vector{TState}`: Sequence of states from start to goal (or best found)
+- `closedsetsize::Int64`: Number of states explored (size of closed set)
+- `opensetsize::Int64`: Number of states still to explore when search ended
+"""
 struct UninformedSearchResult{TState}
   status::Symbol
   path::Vector{TState}

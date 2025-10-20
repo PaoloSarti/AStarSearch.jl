@@ -1,7 +1,17 @@
 import Base
 using DataStructures
 
-"""Node of the state tree to explore"""
+"""
+    AStarNode{TState, TCost}
+
+A node in the A* search tree, containing the state data and search metadata.
+
+# Fields
+- `data::TState`: The actual state data this node represents
+- `g::TCost`: The cost from start to this node
+- `f::TCost`: The total estimated cost (g + h) through this node to goal
+- `parent::Union{AStarNode{TState, TCost}, Nothing}`: The predecessor node in the search tree
+"""
 mutable struct AStarNode{TState, TCost <: Number}
   data::TState
   g::TCost
@@ -9,10 +19,26 @@ mutable struct AStarNode{TState, TCost <: Number}
   parent::Union{AStarNode{TState, TCost}, Nothing}
 end
 
-"order by f = g + h"
+"""
+    isless(n1::AStarNode, n2::AStarNode)
+
+Compare nodes by their f-values for priority queue ordering.
+Nodes with lower f-values (estimated total cost) are considered smaller.
+"""
 Base.isless(n1::AStarNode, n2::AStarNode) = Base.isless(n1.f, n2.f)
 
-"Results structure"
+"""
+    AStarResult{TState, TCost}
+
+Result of an A* search, containing the solution path and search statistics.
+
+# Fields
+- `status::Symbol`: Search result - `:success`, `:timeout`, or `:nopath`
+- `path::Vector{TState}`: Sequence of states from start to goal (or best found)
+- `cost::TCost`: Total cost of the path
+- `closedsetsize::Int64`: Number of states explored (size of closed set)
+- `opensetsize::Int64`: Number of states still to explore when search ended
+"""
 struct AStarResult{TState, TCost <: Number}
   status::Symbol
   path::Vector{TState}
