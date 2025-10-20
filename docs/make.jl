@@ -17,11 +17,5 @@ makedocs(
     ]
 )
 
-# Documenter can also automatically deploy documentation to gh-pages.
-# See https://juliadocs.github.io/Documenter.jl/stable/man/hosting/#GitHub-Pages
-deploydocs(
-    repo = "github.com/PaoloSarti/AStarSearch.jl",
-    devbranch = "main",
-    target = "build",
-    push_preview = true
-)
+# We're using GitHub Actions for deployment, so we don't need deploydocs
+# The documentation will be deployed by the upload-pages-artifact action
