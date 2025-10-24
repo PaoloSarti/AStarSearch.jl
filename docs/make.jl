@@ -1,4 +1,5 @@
 using Documenter
+using Documenter.Remotes: GitHub
 
 push!(LOAD_PATH, "../src/")
 using AStarSearch
@@ -12,7 +13,7 @@ makedocs(
     ),
     modules = [AStarSearch],
     authors = "Paolo Sarti and contributors",
-    repo = "https://github.com/PaoloSarti/AStarSearch.jl/blob/{commit}{path}#L{line}",
+    repo = GitHub("PaoloSarti", "AStarSearch.jl"),
     pages = [
         "Home" => "index.md",
         "API Reference" => "api.md",

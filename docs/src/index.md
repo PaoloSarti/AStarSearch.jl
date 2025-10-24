@@ -12,6 +12,13 @@ A generic implementation of the A* search algorithm and several uninformed searc
   - Breadth-first search
   - Iterative deepening
 
+## Installation
+
+```julia
+using Pkg
+Pkg.add("AStarSearch")
+```
+
 ## Quick Start
 
 ```julia
@@ -30,13 +37,6 @@ cost(state, neighbor) = # your cost function
 path = astar(neighbors, start_state, goal_state; 
              heuristic=heuristic, 
              cost=cost)
-```
-
-## Installation
-
-```julia
-using Pkg
-Pkg.add("AStarSearch")
 ```
 
 For more detailed examples and usage, check out the Examples section.

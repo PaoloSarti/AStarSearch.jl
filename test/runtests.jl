@@ -16,11 +16,7 @@ import JuliaFormatter
     format_markdown = true,
   )
 
-  Aqua.test_ambiguities(AStarSearch)
-  Aqua.test_project_toml_formatting(AStarSearch)
-  Aqua.test_undefined_exports(AStarSearch)
-  Aqua.test_unbound_args(AStarSearch)
-  Aqua.test_deps_compat(AStarSearch)
+  Aqua.test_all(AStarSearch)
 
   include("reachnumber.jl")
   include("maze.jl")

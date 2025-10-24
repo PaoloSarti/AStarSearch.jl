@@ -1,11 +1,23 @@
 name = "AStarSearch"
 uuid = "e6cbe913-2b79-4cc5-848a-e3bbf8537828"
+version = "0.7.0"
 authors = ["Paolo Sarti <paolo.sarti93@gmail.com>"]
-version = "0.6.2"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 
+[extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
 [compat]
-DataStructures = "^0.18"
+Aqua = "^0.8"
+DataStructures = ">=0.18,<0.20"
+JuliaFormatter = "^2"
+Test = "^1.11.0"
 julia = "1"
+
+[targets]
+test = ["Aqua", "DataStructures", "JuliaFormatter", "Test"]

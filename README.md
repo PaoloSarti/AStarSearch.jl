@@ -126,18 +126,5 @@ res = solvemaze(maze, start, goal)
 @test res.cost == 10
 ```
 
-### Breaking Changes
-#### 0.6.0
-Removed `maxdepth` parameter, to improve memory usage, as `maxcost` is more powerful.
-
-#### 0.5.0
-Removed the `AbstractAStarSearch` base struct, the `astar` function is now the only supported interface by this package.
-
-#### 0.4.0
-Since this release the base `astar` API changes, requiring the `neighbours` function as the first argument, and the second and third argument are the starting state and the goal state. All the other functions, `heuristic`, `cost`, and `isgoal`, are optional keyword arguments, and they now all expect 2 arguments (current state and goal/next state in the case of the `cost` function).
-The subtyping API is the same, but the main method was renamed `astar`, instead of `search`
-
-#### 0.3.0
-The 0.3.0 release introduces a more strict type checking, requiring uniformity of types between the cost and the heuristics, to improve performance.  
-If you get type errors, it will probably be because by default the cost is Int64, and you provided a Float heuristic.  
-You can either provide the cost function that returns a float, or cast the heuristic to Int64.
+### Changelog
+See [CHANGELOG.md](CHANGELOG.md) for a list of notable changes across versions.
