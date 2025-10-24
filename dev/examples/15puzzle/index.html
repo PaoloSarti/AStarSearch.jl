@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>15-Puzzle · AStarSearch.jl</title><meta name="title" content="15-Puzzle · AStarSearch.jl"/><meta property="og:title" content="15-Puzzle · AStarSearch.jl"/><meta property="twitter:title" content="15-Puzzle · AStarSearch.jl"/><meta name="description" content="Documentation for AStarSearch.jl."/><meta property="og:description" content="Documentation for AStarSearch.jl."/><meta property="twitter:description" content="Documentation for AStarSearch.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AStarSearch.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../api/">API Reference</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../maze/">Maze Pathfinding</a></li><li class="is-active"><a class="tocitem" href>15-Puzzle</a><ul class="internal"><li><a class="tocitem" href="#Problem-Setup"><span>Problem Setup</span></a></li><li><a class="tocitem" href="#State-Manipulation"><span>State Manipulation</span></a></li><li><a class="tocitem" href="#Heuristic-Function"><span>Heuristic Function</span></a></li><li><a class="tocitem" href="#Solving-the-Puzzle"><span>Solving the Puzzle</span></a></li><li><a class="tocitem" href="#Performance-Considerations"><span>Performance Considerations</span></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>15-Puzzle</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>15-Puzzle</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/PaoloSarti/AStarSearch.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/PaoloSarti/AStarSearch.jl/blob/main/docs/src/examples/15puzzle.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="15-Puzzle-Example"><a class="docs-heading-anchor" href="#15-Puzzle-Example">15-Puzzle Example</a><a id="15-Puzzle-Example-1"></a><a class="docs-heading-anchor-permalink" href="#15-Puzzle-Example" title="Permalink"></a></h1><p>The 15-puzzle is a classic sliding puzzle that consists of a 4×4 grid with 15 numbered tiles and one empty space. The goal is to rearrange the tiles from a given starting configuration to reach a specific goal state by sliding tiles into the empty space.</p><h2 id="Problem-Setup"><a class="docs-heading-anchor" href="#Problem-Setup">Problem Setup</a><a id="Problem-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Problem-Setup" title="Permalink"></a></h2><p>First, we define the state structure and some helper functions:</p><pre><code class="language-julia hljs">struct State
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>15-Puzzle · AStarSearch.jl</title><meta name="title" content="15-Puzzle · AStarSearch.jl"/><meta property="og:title" content="15-Puzzle · AStarSearch.jl"/><meta property="twitter:title" content="15-Puzzle · AStarSearch.jl"/><meta name="description" content="Documentation for AStarSearch.jl."/><meta property="og:description" content="Documentation for AStarSearch.jl."/><meta property="twitter:description" content="Documentation for AStarSearch.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AStarSearch.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../api/">API Reference</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../maze/">Maze Pathfinding</a></li><li class="is-active"><a class="tocitem" href>15-Puzzle</a><ul class="internal"><li><a class="tocitem" href="#Problem-Setup"><span>Problem Setup</span></a></li><li><a class="tocitem" href="#State-Manipulation"><span>State Manipulation</span></a></li><li><a class="tocitem" href="#Performance-and-correctness-Considerations"><span>Performance and correctness Considerations</span></a></li><li><a class="tocitem" href="#Heuristic-Function"><span>Heuristic Function</span></a></li><li><a class="tocitem" href="#Solving-the-Puzzle"><span>Solving the Puzzle</span></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>15-Puzzle</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>15-Puzzle</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/PaoloSarti/AStarSearch.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/PaoloSarti/AStarSearch.jl/blob/main/docs/src/examples/15puzzle.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="15-Puzzle-Example"><a class="docs-heading-anchor" href="#15-Puzzle-Example">15-Puzzle Example</a><a id="15-Puzzle-Example-1"></a><a class="docs-heading-anchor-permalink" href="#15-Puzzle-Example" title="Permalink"></a></h1><p>The 15-puzzle is a classic sliding puzzle that consists of a 4×4 grid with 15 numbered tiles and one empty space. The goal is to rearrange the tiles from a given starting configuration to reach a specific goal state by sliding tiles into the empty space.</p><h2 id="Problem-Setup"><a class="docs-heading-anchor" href="#Problem-Setup">Problem Setup</a><a id="Problem-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Problem-Setup" title="Permalink"></a></h2><p>First, we define the state structure and some helper functions:</p><pre><code class="language-julia hljs">struct State
     table::Array{Int8, 2}
 end
 
@@ -16,7 +16,8 @@ GOALSTATE = State([
     5  6  7  8
     9  10 11 12
     13 14 15 0
-])</code></pre><h2 id="State-Manipulation"><a class="docs-heading-anchor" href="#State-Manipulation">State Manipulation</a><a id="State-Manipulation-1"></a><a class="docs-heading-anchor-permalink" href="#State-Manipulation" title="Permalink"></a></h2><p>We need functions to find valid moves and generate next states:</p><pre><code class="language-julia hljs"># Find empty tile position
+])
+FINALSTATEINDEXES = [findfirst(x -&gt; x == i, GOALSTATE.table) for i = 1:15]</code></pre><h2 id="State-Manipulation"><a class="docs-heading-anchor" href="#State-Manipulation">State Manipulation</a><a id="State-Manipulation-1"></a><a class="docs-heading-anchor-permalink" href="#State-Manipulation" title="Permalink"></a></h2><p>We need functions to find valid moves and generate next states:</p><pre><code class="language-julia hljs"># Find empty tile position
 emptyposition(s::State) = findfirst(x -&gt; x == 0, s.table)
 
 # Check if a position is valid on the board
@@ -27,8 +28,62 @@ availablemoves(e::CartesianIndex) =
     [direction for direction in DIRECTIONS if isvalidindex(e + direction)]
 availablemoves(s::State) = s |&gt; emptyposition |&gt; availablemoves
 
+function move(s::State, direction::CartesianIndex)
+    next = copy(s.table)
+    cur = emptyposition(s)
+    emptydest = cur + direction
+    next[cur], next[emptydest] = next[emptydest], next[cur]
+    return State(next)
+end
+
+function move!(s::State, direction::CartesianIndex)
+    cur = emptyposition(s)
+    emptydest = cur + direction
+    s.table[cur], s.table[emptydest] = s.table[emptydest], s.table[cur]
+    return nothing
+end
+
+function randominitialstate(n)
+    s = copy(GOALSTATE)
+    for _ = 1:n
+        curavailablemoves = availablemoves(s)
+        selectedmove = rand(curavailablemoves)
+        move!(s, selectedmove)
+    end
+    return s
+end
+
 # Generate next states by applying available moves
-nextstates(s::State) = map(x -&gt; move(s, x), availablemoves(s))</code></pre><h2 id="Heuristic-Function"><a class="docs-heading-anchor" href="#Heuristic-Function">Heuristic Function</a><a id="Heuristic-Function-1"></a><a class="docs-heading-anchor-permalink" href="#Heuristic-Function" title="Permalink"></a></h2><p>For efficient pathfinding, we use a combination of Manhattan distance and swap count:</p><pre><code class="language-julia hljs">function heuristicmanhattanandswaps(s::State)
+nextstates(s::State) = map(x -&gt; move(s, x), availablemoves(s))</code></pre><h2 id="Performance-and-correctness-Considerations"><a class="docs-heading-anchor" href="#Performance-and-correctness-Considerations">Performance and correctness Considerations</a><a id="Performance-and-correctness-Considerations-1"></a><a class="docs-heading-anchor-permalink" href="#Performance-and-correctness-Considerations" title="Permalink"></a></h2><p>For efficient state comparison and storage in the closed set, we provide a custom hash function that compresses the entire board state into a single 64-bit integer:</p><pre><code class="language-julia hljs">Base.copy(s::State) = State(copy(s.table))
+Base.:(==)(s1::State, s2::State) = s1.table == s2.table
+
+function Base.hash(s::State)
+    h = UInt64(0)
+    for j = 1:4, i = 1:4
+        h += s.table[i, j]
+        h &lt;&lt;= 4
+    end
+    return h
+end</code></pre><h2 id="Heuristic-Function"><a class="docs-heading-anchor" href="#Heuristic-Function">Heuristic Function</a><a id="Heuristic-Function-1"></a><a class="docs-heading-anchor-permalink" href="#Heuristic-Function" title="Permalink"></a></h2><p>For efficient pathfinding, we use a combination of Manhattan distance and swap count:</p><pre><code class="language-julia hljs">manhattan(c1::CartesianIndex, c2::CartesianIndex) = c1 - c2 |&gt; x -&gt; x.I .|&gt; abs |&gt; sum
+
+function countswaps(s::State)
+  acc = 0
+  for j = 1:3, i = 1:3
+    # horizontal swap
+    if (s.table[i, j] == GOALSTATE.table[i + 1, j]) &amp;&amp;
+        (s.table[i + 1, j] == GOALSTATE.table[i, j])
+        acc += 1
+    end
+    #vertical swap
+    if (s.table[i, j] == GOALSTATE.table[i, j + 1]) &amp;&amp;
+        (s.table[i, j + 1] == GOALSTATE.table[i, j])
+        acc += 1
+    end
+  end
+  return acc
+end
+
+function heuristicmanhattanandswaps(s::State)
     # Manhattan distance component
     manhattan_sum = sum(manhattan(findfirst(x -&gt; x == i, s.table), 
                                 FINALSTATEINDEXES[i]) for i = 1:15)
@@ -50,23 +105,24 @@ start = State([
     13 10 14 15
 ])
 
-# Find solution path
-result = astar(nextstates, start, GOALSTATE; heuristic=heuristic)
+function solve_15_puzzle(start::State, heuristic=heuristic; kwargs...)
+    return astar(nextstates, start, GOALSTATE; heuristic=heuristic, kwargs...)
+end
 
-if result.status == :success
-    println(&quot;Solution found in $(result.cost) moves!&quot;)
-    # Path contains the sequence of states from start to goal
-    for state in result.path
-        display(state.table)
-        println()
+# Find solution path
+result = solve_15_puzzle(start)
+
+function print_result(result)
+    if result.status == :success
+        println(&quot;Solution found in $(result.cost) moves!&quot;)
+        # Path contains the sequence of states from start to goal
+        for state in result.path
+            display(state.table)
+            println()
+        end
+    else
+        println(&quot;No solution found.&quot;)
     end
-else
-    println(&quot;No solution found.&quot;)
-end</code></pre><h2 id="Performance-Considerations"><a class="docs-heading-anchor" href="#Performance-Considerations">Performance Considerations</a><a id="Performance-Considerations-1"></a><a class="docs-heading-anchor-permalink" href="#Performance-Considerations" title="Permalink"></a></h2><p>For efficient state comparison and storage in the closed set, we provide a custom hash function that compresses the entire board state into a single 64-bit integer:</p><pre><code class="language-julia hljs">function Base.hash(s::State)
-    h = UInt64(0)
-    for j = 1:4, i = 1:4
-        h += s.table[i, j]
-        h &lt;&lt;= 4
-    end
-    return h
-end</code></pre><p>This example demonstrates how AStarSearch.jl can be used to solve complex puzzles while maintaining good performance through careful state representation and heuristic design.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../maze/">« Maze Pathfinding</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Friday 24 October 2025 22:19">Friday 24 October 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end
+
+print_result(result)</code></pre><p>This example demonstrates how AStarSearch.jl can be used to solve complex puzzles while maintaining good performance through careful state representation and heuristic design.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../maze/">« Maze Pathfinding</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Friday 24 October 2025 23:21">Friday 24 October 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
