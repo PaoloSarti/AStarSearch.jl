@@ -6,11 +6,8 @@ using AStarSearch
 
 makedocs(
     sitename = "AStarSearch.jl",
-    format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true",
-        canonical = "https://paolosarti.github.io/AStarSearch.jl",
-        edit_link = "main"
-    ),
+    warnonly = true,
+    format = Documenter.HTML(),
     modules = [AStarSearch],
     authors = "Paolo Sarti and contributors",
     repo = GitHub("PaoloSarti", "AStarSearch.jl"),
@@ -25,7 +22,5 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/PaoloSarti/AStarSearch.jl",
-    devbranch = "main",
-    versions = ["stable" => "v^", "v#.#", "dev" => "dev"]
+    repo = "github.com/PaoloSarti/AStarSearch.jl"
 )
