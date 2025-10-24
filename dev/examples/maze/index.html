@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Maze Pathfinding · AStarSearch.jl</title><meta name="title" content="Maze Pathfinding · AStarSearch.jl"/><meta property="og:title" content="Maze Pathfinding · AStarSearch.jl"/><meta property="twitter:title" content="Maze Pathfinding · AStarSearch.jl"/><meta name="description" content="Documentation for AStarSearch.jl."/><meta property="og:description" content="Documentation for AStarSearch.jl."/><meta property="twitter:description" content="Documentation for AStarSearch.jl."/><meta property="og:url" content="https://paolosarti.github.io/AStarSearch.jl/examples/maze/"/><meta property="twitter:url" content="https://paolosarti.github.io/AStarSearch.jl/examples/maze/"/><link rel="canonical" href="https://paolosarti.github.io/AStarSearch.jl/examples/maze/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AStarSearch.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../api/">API Reference</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../15puzzle/">15-Puzzle</a></li><li class="is-active"><a class="tocitem" href>Maze Pathfinding</a><ul class="internal"><li><a class="tocitem" href="#Problem-Setup"><span>Problem Setup</span></a></li><li><a class="tocitem" href="#Neighbor-Generation"><span>Neighbor Generation</span></a></li><li><a class="tocitem" href="#Heuristic-Function"><span>Heuristic Function</span></a></li><li><a class="tocitem" href="#Solving-the-Maze"><span>Solving the Maze</span></a></li><li><a class="tocitem" href="#Visualizing-the-Solution"><span>Visualizing the Solution</span></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Maze Pathfinding</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Maze Pathfinding</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/PaoloSarti/AStarSearch.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/PaoloSarti/AStarSearch.jl/blob/main/docs/src/examples/maze.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Maze-Pathfinding-Example"><a class="docs-heading-anchor" href="#Maze-Pathfinding-Example">Maze Pathfinding Example</a><a id="Maze-Pathfinding-Example-1"></a><a class="docs-heading-anchor-permalink" href="#Maze-Pathfinding-Example" title="Permalink"></a></h1><p>This example shows how to use AStarSearch.jl to solve a simple maze pathfinding problem. We&#39;ll represent the maze as a 2D grid where <code>true</code> represents walls and <code>false</code> represents open paths.</p><h2 id="Problem-Setup"><a class="docs-heading-anchor" href="#Problem-Setup">Problem Setup</a><a id="Problem-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Problem-Setup" title="Permalink"></a></h2><p>We&#39;ll use <code>CartesianIndex</code> to represent positions in the maze:</p><pre><code class="language-julia hljs"># Define movement directions
+UP = CartesianIndex(-1, 0)
+DOWN = CartesianIndex(1, 0)
+LEFT = CartesianIndex(0, -1)
+RIGHT = CartesianIndex(0, 1)
+DIRECTIONS = [UP, DOWN, LEFT, RIGHT]</code></pre><h2 id="Neighbor-Generation"><a class="docs-heading-anchor" href="#Neighbor-Generation">Neighbor Generation</a><a id="Neighbor-Generation-1"></a><a class="docs-heading-anchor-permalink" href="#Neighbor-Generation" title="Permalink"></a></h2><p>For each position in the maze, we need to generate valid neighboring positions:</p><pre><code class="language-julia hljs">function mazeneighbours(maze, p)
+    res = CartesianIndex[]
+    for d in DIRECTIONS
+        n = p + d
+        # Check if neighbor is within bounds and not a wall
+        if 1 ≤ n[1] ≤ size(maze)[1] &amp;&amp; 
+           1 ≤ n[2] ≤ size(maze)[2] &amp;&amp; 
+           !maze[n]
+            push!(res, n)
+        end
+    end
+    return res
+end</code></pre><h2 id="Heuristic-Function"><a class="docs-heading-anchor" href="#Heuristic-Function">Heuristic Function</a><a id="Heuristic-Function-1"></a><a class="docs-heading-anchor-permalink" href="#Heuristic-Function" title="Permalink"></a></h2><p>We&#39;ll use Manhattan distance as our heuristic:</p><pre><code class="language-julia hljs">manhattan(p, s) = abs(p[1] - s[1]) + abs(p[2] - s[2])</code></pre><h2 id="Solving-the-Maze"><a class="docs-heading-anchor" href="#Solving-the-Maze">Solving the Maze</a><a id="Solving-the-Maze-1"></a><a class="docs-heading-anchor-permalink" href="#Solving-the-Maze" title="Permalink"></a></h2><p>Putting it all together:</p><pre><code class="language-julia hljs">using AStarSearch
+
+# Create a maze (true = wall, false = path)
+maze = [
+    0 0 1 0 0
+    0 1 0 0 0
+    0 1 0 0 1
+    0 0 0 1 1
+    1 0 1 0 0
+] .== 1
+
+# Define start and goal positions
+start = CartesianIndex(1, 1)
+goal = CartesianIndex(1, 5)
+
+# Helper function to solve the maze
+function solvemaze(m, s, g)
+    astar(p -&gt; mazeneighbours(m, p), s, g; heuristic=manhattan)
+end
+
+# Find the path
+result = solvemaze(maze, start, goal)
+
+if result.status == :success
+    println(&quot;Path found with length $(result.cost)!&quot;)
+    # Print the path
+    for position in result.path
+        println(position)
+    end
+else
+    println(&quot;No path found to goal!&quot;)
+end</code></pre><h2 id="Visualizing-the-Solution"><a class="docs-heading-anchor" href="#Visualizing-the-Solution">Visualizing the Solution</a><a id="Visualizing-the-Solution-1"></a><a class="docs-heading-anchor-permalink" href="#Visualizing-the-Solution" title="Permalink"></a></h2><p>Here&#39;s a simple way to visualize the path in the maze:</p><pre><code class="language-julia hljs">function printmaze(maze, path)
+    chars = fill(&#39;.&#39;, size(maze))
+    chars[maze] .= &#39;█&#39;
+    
+    # Mark the path with numbers
+    for (i, pos) in enumerate(path)
+        chars[pos] = &#39;*&#39;
+    end
+    
+    # Print the maze
+    for row in eachrow(chars)
+        println(join(row))
+    end
+end
+
+# Example visualization
+printmaze(maze, result.path)</code></pre><p>This will produce output like:</p><pre><code class="nohighlight hljs">*....
+*█*.
+*█*.█
+**.██
+█*█..</code></pre><p>This example demonstrates how AStarSearch.jl can be used for grid-based pathfinding problems. The same approach can be extended to more complex grids, different movement patterns, or custom cost functions.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../15puzzle/">« 15-Puzzle</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Friday 24 October 2025 21:38">Friday 24 October 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
