@@ -15,8 +15,8 @@ makedocs(
         "Home" => "index.md",
         "API Reference" => "api.md",
         "Examples" => [
-            "15-Puzzle" => "examples/15puzzle.md",
-            "Maze Pathfinding" => "examples/maze.md"
+            "Maze Pathfinding" => "examples/maze.md",
+            "15-Puzzle" => "examples/15puzzle.md"
         ]
     ]
 )
