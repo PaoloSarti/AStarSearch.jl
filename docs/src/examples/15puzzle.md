@@ -25,6 +25,7 @@ GOALSTATE = State([
     9  10 11 12
     13 14 15 0
 ])
+FINALSTATEINDEXES = [findfirst(x -> x == i, GOALSTATE.table) for i = 1:15]
 ```
 
 ## State Manipulation
@@ -43,8 +44,51 @@ availablemoves(e::CartesianIndex) =
     [direction for direction in DIRECTIONS if isvalidindex(e + direction)]
 availablemoves(s::State) = s |> emptyposition |> availablemoves
 
+function move(s::State, direction::CartesianIndex)
+    next = copy(s.table)
+    cur = emptyposition(s)
+    emptydest = cur + direction
+    next[cur], next[emptydest] = next[emptydest], next[cur]
+    return State(next)
+end
+
+function move!(s::State, direction::CartesianIndex)
+    cur = emptyposition(s)
+    emptydest = cur + direction
+    s.table[cur], s.table[emptydest] = s.table[emptydest], s.table[cur]
+    return nothing
+end
+
+function randominitialstate(n)
+    s = copy(GOALSTATE)
+    for _ = 1:n
+        curavailablemoves = availablemoves(s)
+        selectedmove = rand(curavailablemoves)
+        move!(s, selectedmove)
+    end
+    return s
+end
+
 # Generate next states by applying available moves
 nextstates(s::State) = map(x -> move(s, x), availablemoves(s))
+```
+
+## Performance and correctness Considerations
+
+For efficient state comparison and storage in the closed set, we provide a custom hash function that compresses the entire board state into a single 64-bit integer:
+
+```julia
+Base.copy(s::State) = State(copy(s.table))
+Base.:(==)(s1::State, s2::State) = s1.table == s2.table
+
+function Base.hash(s::State)
+    h = UInt64(0)
+    for j = 1:4, i = 1:4
+        h += s.table[i, j]
+        h <<= 4
+    end
+    return h
+end
 ```
 
 ## Heuristic Function
@@ -52,6 +96,25 @@ nextstates(s::State) = map(x -> move(s, x), availablemoves(s))
 For efficient pathfinding, we use a combination of Manhattan distance and swap count:
 
 ```julia
+manhattan(c1::CartesianIndex, c2::CartesianIndex) = c1 - c2 |> x -> x.I .|> abs |> sum
+
+function countswaps(s::State)
+  acc = 0
+  for j = 1:3, i = 1:3
+    # horizontal swap
+    if (s.table[i, j] == GOALSTATE.table[i + 1, j]) &&
+        (s.table[i + 1, j] == GOALSTATE.table[i, j])
+        acc += 1
+    end
+    #vertical swap
+    if (s.table[i, j] == GOALSTATE.table[i, j + 1]) &&
+        (s.table[i, j + 1] == GOALSTATE.table[i, j])
+        acc += 1
+    end
+  end
+  return acc
+end
+
 function heuristicmanhattanandswaps(s::State)
     # Manhattan distance component
     manhattan_sum = sum(manhattan(findfirst(x -> x == i, s.table), 
@@ -82,34 +145,27 @@ start = State([
     13 10 14 15
 ])
 
+function solve_15_puzzle(start::State, heuristic=heuristic; kwargs...)
+    return astar(nextstates, start, GOALSTATE; heuristic=heuristic, kwargs...)
+end
+
 # Find solution path
-result = astar(nextstates, start, GOALSTATE; heuristic=heuristic)
+result = solve_15_puzzle(start)
 
-if result.status == :success
-    println("Solution found in $(result.cost) moves!")
-    # Path contains the sequence of states from start to goal
-    for state in result.path
-        display(state.table)
-        println()
+function print_result(result)
+    if result.status == :success
+        println("Solution found in $(result.cost) moves!")
+        # Path contains the sequence of states from start to goal
+        for state in result.path
+            display(state.table)
+            println()
+        end
+    else
+        println("No solution found.")
     end
-else
-    println("No solution found.")
 end
-```
 
-## Performance Considerations
-
-For efficient state comparison and storage in the closed set, we provide a custom hash function that compresses the entire board state into a single 64-bit integer:
-
-```julia
-function Base.hash(s::State)
-    h = UInt64(0)
-    for j = 1:4, i = 1:4
-        h += s.table[i, j]
-        h <<= 4
-    end
-    return h
-end
+print_result(result)
 ```
 
 This example demonstrates how AStarSearch.jl can be used to solve complex puzzles while maintaining good performance through careful state representation and heuristic design.
