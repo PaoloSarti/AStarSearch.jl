@@ -47,12 +47,6 @@ struct AStarResult{TState, TCost <: Number}
   opensetsize::Int64
 end
 
-function astar_compatibility_warn(; kwargs...)
-  if "maxdepth" in keys(kwargs)
-    @warn "'maxdepth' is no longer supported in the astar function, use 'maxcost' instead. Ignoring it..."
-  end
-end
-
 mutable struct AStarSearchState{TState, TCost <: Number, THash}
   openheap::Vector{AStarNode{TState, TCost}}
   opennodedict::Dict{THash, AStarNode{TState, TCost}}
@@ -218,8 +212,6 @@ function astar(
   enable_closedset = true,
   kwargs...,
 )
-  astar_compatibility_warn(; kwargs...)
-
   start_heuristic = heuristic(start, goal)
   start_cost = zero(start_heuristic)
   start_node = AStarNode(start, start_cost, start_heuristic, nothing)
