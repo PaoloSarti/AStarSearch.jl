@@ -6,6 +6,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Aqua = "^0.8"
-DataStructures = "^0.19"
+DataStructures = "0.18 - 0.19"
 JuliaFormatter = "^2"
 julia = "1"
