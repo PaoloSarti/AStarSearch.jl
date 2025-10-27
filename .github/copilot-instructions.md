@@ -22,7 +22,7 @@ This repository implements a generic A* search and several uninformed search alg
   - Example problems are in `test/15puzzle.jl` and `test/maze.jl`. Use them as canonical examples of how to implement `neighbours`, `heuristic`, and `hash` for composite states.
 
 - Conventions and patterns:
-  - API-first, generic functions: prefer adding functionality by keeping the same astar signature and adding optional keyword args. Backwards compatibility is controlled by `astar_compatibility_warn`.
+  - API-first, generic functions: prefer adding functionality by keeping the same astar signature and adding optional keyword args.
   - Avoid changing exported function signatures; if needed, add new optional keyword args and deprecation warnings.
   - `enable_closedset` defaults to true in most functions; some searches intentionally disable it (e.g., iterative deepening uses depth-first internally and sets closedset differently).
 
