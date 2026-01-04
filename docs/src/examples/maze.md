@@ -1,18 +1,19 @@
 # Maze Pathfinding Example
 
-This example shows how to use AStarSearch.jl to solve a simple maze pathfinding problem. We'll represent the maze as a 2D grid where `true` represents walls and `false` represents open paths.
+This example shows how to use AStarSearch.jl to solve a simple maze pathfinding problem. The complete code can be found in the [`examples/maze.jl`](https://github.com/PaoloSarti/AStarSearch.jl/blob/main/examples/maze.jl) file in the repository.
+
+We'll represent the maze as a 2D grid where `true` represents walls and `false` represents open paths.
 
 ## Problem Setup
 
 We'll use `CartesianIndex` to represent positions in the maze:
 
 ```julia
-# Define movement directions
-UP = CartesianIndex(-1, 0)
-DOWN = CartesianIndex(1, 0)
-LEFT = CartesianIndex(0, -1)
-RIGHT = CartesianIndex(0, 1)
-DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
+const UP = CartesianIndex(-1, 0)
+const DOWN = CartesianIndex(1, 0)
+const LEFT = CartesianIndex(0, -1)
+const RIGHT = CartesianIndex(0, 1)
+const DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 ```
 
 ## Neighbor Generation
@@ -114,5 +115,13 @@ This will produce output like:
 **.██
 █*█..
 ```
+
+## Visual Example
+
+The example code includes a function to generate and visualize random mazes with their solutions using GLMakie:
+
+![Solved Maze](./solved_maze.png)
+
+This image shows a 100×100 maze with the solution path highlighted. The gray areas represent the walls, while the green line shows the shortest path found by the A* algorithm.
 
 This example demonstrates how AStarSearch.jl can be used for grid-based pathfinding problems. The same approach can be extended to more complex grids, different movement patterns, or custom cost functions.
