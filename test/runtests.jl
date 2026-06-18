@@ -23,4 +23,5 @@ import JuliaFormatter
   include("15puzzle.jl")
   include("collatz.jl")
   include("no_path.jl")
+  include("torus.jl")
 end

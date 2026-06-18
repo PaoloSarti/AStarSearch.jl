@@ -22,17 +22,15 @@ For each position in the maze, we need to generate valid neighboring positions:
 
 ```julia
 function mazeneighbours(maze, p)
-    res = CartesianIndex[]
-    for d in DIRECTIONS
-        n = p + d
-        # Check if neighbor is within bounds and not a wall
-        if 1 ≤ n[1] ≤ size(maze)[1] && 
-           1 ≤ n[2] ≤ size(maze)[2] && 
-           !maze[n]
-            push!(res, n)
-        end
+  res = CartesianIndex[]
+  for d in DIRECTIONS
+    n = p + d
+    # Check if neighbor is within bounds and not a wall
+    if 1 ≤ n[1] ≤ size(maze)[1] && 1 ≤ n[2] ≤ size(maze)[2] && !maze[n]
+      push!(res, n)
     end
-    return res
+  end
+  return res
 end
 ```
 
@@ -53,11 +51,11 @@ using AStarSearch
 
 # Create a maze (true = wall, false = path)
 maze = [
-    0 0 1 0 0
-    0 1 0 0 0
-    0 1 0 0 1
-    0 0 0 1 1
-    1 0 1 0 0
+  0 0 1 0 0
+  0 1 0 0 0
+  0 1 0 0 1
+  0 0 0 1 1
+  1 0 1 0 0
 ] .== 1
 
 # Define start and goal positions
@@ -66,20 +64,20 @@ goal = CartesianIndex(1, 5)
 
 # Helper function to solve the maze
 function solvemaze(m, s, g)
-    astar(p -> mazeneighbours(m, p), s, g; heuristic=manhattan)
+  return astar(p -> mazeneighbours(m, p), s, g; heuristic = manhattan)
 end
 
 # Find the path
 result = solvemaze(maze, start, goal)
 
 if result.status == :success
-    println("Path found with length $(result.cost)!")
-    # Print the path
-    for position in result.path
-        println(position)
-    end
+  println("Path found with length $(result.cost)!")
+  # Print the path
+  for position in result.path
+    println(position)
+  end
 else
-    println("No path found to goal!")
+  println("No path found to goal!")
 end
 ```
 
@@ -89,18 +87,18 @@ Here's a simple way to visualize the path in the maze:
 
 ```julia
 function printmaze(maze, path)
-    chars = fill('.', size(maze))
-    chars[maze] .= '█'
-    
-    # Mark the path with numbers
-    for (i, pos) in enumerate(path)
-        chars[pos] = '*'
-    end
-    
-    # Print the maze
-    for row in eachrow(chars)
-        println(join(row))
-    end
+  chars = fill('.', size(maze))
+  chars[maze] .= '█'
+
+  # Mark the path with numbers
+  for (i, pos) in enumerate(path)
+    chars[pos] = '*'
+  end
+
+  # Print the maze
+  for row in eachrow(chars)
+    println(join(row))
+  end
 end
 
 # Example visualization
@@ -108,6 +106,7 @@ printmaze(maze, result.path)
 ```
 
 This will produce output like:
+
 ```
 *....
 *█*.

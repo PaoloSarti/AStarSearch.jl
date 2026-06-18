@@ -5,22 +5,21 @@ push!(LOAD_PATH, "../src/")
 using AStarSearch
 
 makedocs(
-    sitename = "AStarSearch.jl",
-    warnonly = true,
-    format = Documenter.HTML(),
-    modules = [AStarSearch],
-    authors = "Paolo Sarti and contributors",
-    repo = GitHub("PaoloSarti", "AStarSearch.jl"),
-    pages = [
-        "Home" => "index.md",
-        "API Reference" => "api.md",
-        "Examples" => [
-            "Maze Pathfinding" => "examples/maze.md",
-            "15-Puzzle" => "examples/15puzzle.md"
-        ]
-    ]
+  sitename = "AStarSearch.jl",
+  warnonly = true,
+  format = Documenter.HTML(),
+  modules = [AStarSearch],
+  authors = "Paolo Sarti and contributors",
+  repo = GitHub("PaoloSarti", "AStarSearch.jl"),
+  pages = [
+    "Home" => "index.md",
+    "API Reference" => "api.md",
+    "Examples" => [
+      "Maze Pathfinding" => "examples/maze.md",
+      "15-Puzzle" => "examples/15puzzle.md",
+      "Torus Puzzle" => "examples/torus.md",
+    ],
+  ],
 )
 
-deploydocs(
-    repo = "github.com/PaoloSarti/AStarSearch.jl"
-)
+deploydocs(repo = "github.com/PaoloSarti/AStarSearch.jl")

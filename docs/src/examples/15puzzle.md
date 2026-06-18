@@ -8,7 +8,7 @@ First, we define the state structure and some helper functions:
 
 ```julia
 struct State
-    table::Array{Int8, 2}
+  table::Array{Int8, 2}
 end
 
 # Define movement directions
@@ -20,10 +20,10 @@ DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
 # Goal state configuration
 GOALSTATE = State([
-    1  2  3  4
-    5  6  7  8
-    9  10 11 12
-    13 14 15 0
+  1 2 3 4
+  5 6 7 8
+  9 10 11 12
+  13 14 15 0
 ])
 FINALSTATEINDEXES = [findfirst(x -> x == i, GOALSTATE.table) for i = 1:15]
 ```
@@ -40,33 +40,33 @@ emptyposition(s::State) = findfirst(x -> x == 0, s.table)
 isvalidindex(c) = (0 < c[1] < 5) && (0 < c[2] < 5)
 
 # Get available moves from current empty position
-availablemoves(e::CartesianIndex) = 
-    [direction for direction in DIRECTIONS if isvalidindex(e + direction)]
+availablemoves(e::CartesianIndex) =
+  [direction for direction in DIRECTIONS if isvalidindex(e + direction)]
 availablemoves(s::State) = s |> emptyposition |> availablemoves
 
 function move(s::State, direction::CartesianIndex)
-    next = copy(s.table)
-    cur = emptyposition(s)
-    emptydest = cur + direction
-    next[cur], next[emptydest] = next[emptydest], next[cur]
-    return State(next)
+  next = copy(s.table)
+  cur = emptyposition(s)
+  emptydest = cur + direction
+  next[cur], next[emptydest] = next[emptydest], next[cur]
+  return State(next)
 end
 
 function move!(s::State, direction::CartesianIndex)
-    cur = emptyposition(s)
-    emptydest = cur + direction
-    s.table[cur], s.table[emptydest] = s.table[emptydest], s.table[cur]
-    return nothing
+  cur = emptyposition(s)
+  emptydest = cur + direction
+  s.table[cur], s.table[emptydest] = s.table[emptydest], s.table[cur]
+  return nothing
 end
 
 function randominitialstate(n)
-    s = copy(GOALSTATE)
-    for _ = 1:n
-        curavailablemoves = availablemoves(s)
-        selectedmove = rand(curavailablemoves)
-        move!(s, selectedmove)
-    end
-    return s
+  s = copy(GOALSTATE)
+  for _ = 1:n
+    curavailablemoves = availablemoves(s)
+    selectedmove = rand(curavailablemoves)
+    move!(s, selectedmove)
+  end
+  return s
 end
 
 # Generate next states by applying available moves
@@ -82,12 +82,12 @@ Base.copy(s::State) = State(copy(s.table))
 Base.:(==)(s1::State, s2::State) = s1.table == s2.table
 
 function Base.hash(s::State)
-    h = UInt64(0)
-    for j = 1:4, i = 1:4
-        h += s.table[i, j]
-        h <<= 4
-    end
-    return h
+  h = UInt64(0)
+  for j = 1:4, i = 1:4
+    h += s.table[i, j]
+    h <<= 4
+  end
+  return h
 end
 ```
 
@@ -103,27 +103,27 @@ function countswaps(s::State)
   for j = 1:3, i = 1:3
     # horizontal swap
     if (s.table[i, j] == GOALSTATE.table[i + 1, j]) &&
-        (s.table[i + 1, j] == GOALSTATE.table[i, j])
-        acc += 1
+       (s.table[i + 1, j] == GOALSTATE.table[i, j])
+      acc += 1
     end
     #vertical swap
     if (s.table[i, j] == GOALSTATE.table[i, j + 1]) &&
-        (s.table[i, j + 1] == GOALSTATE.table[i, j])
-        acc += 1
+       (s.table[i, j + 1] == GOALSTATE.table[i, j])
+      acc += 1
     end
   end
   return acc
 end
 
 function heuristicmanhattanandswaps(s::State)
-    # Manhattan distance component
-    manhattan_sum = sum(manhattan(findfirst(x -> x == i, s.table), 
-                                FINALSTATEINDEXES[i]) for i = 1:15)
-    
-    # Swap count component
-    swaps = countswaps(s)
-    
-    return manhattan_sum + 2*swaps
+  # Manhattan distance component
+  manhattan_sum =
+    sum(manhattan(findfirst(x -> x == i, s.table), FINALSTATEINDEXES[i]) for i = 1:15)
+
+  # Swap count component
+  swaps = countswaps(s)
+
+  return manhattan_sum + 2*swaps
 end
 
 # For A* search interface
@@ -139,30 +139,30 @@ using AStarSearch
 
 # Example starting state
 start = State([
-    1 2 3 4
-    5 7 11 8
-    9 6 0 12
-    13 10 14 15
+  1 2 3 4
+  5 7 11 8
+  9 6 0 12
+  13 10 14 15
 ])
 
-function solve_15_puzzle(start::State, heuristic=heuristic; kwargs...)
-    return astar(nextstates, start, GOALSTATE; heuristic=heuristic, kwargs...)
+function solve_15_puzzle(start::State, heuristic = heuristic; kwargs...)
+  return astar(nextstates, start, GOALSTATE; heuristic = heuristic, kwargs...)
 end
 
 # Find solution path
 result = solve_15_puzzle(start)
 
 function print_result(result)
-    if result.status == :success
-        println("Solution found in $(result.cost) moves!")
-        # Path contains the sequence of states from start to goal
-        for state in result.path
-            display(state.table)
-            println()
-        end
-    else
-        println("No solution found.")
+  if result.status == :success
+    println("Solution found in $(result.cost) moves!")
+    # Path contains the sequence of states from start to goal
+    for state in result.path
+      display(state.table)
+      println()
     end
+  else
+    println("No solution found.")
+  end
 end
 
 print_result(result)
