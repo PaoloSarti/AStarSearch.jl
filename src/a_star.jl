@@ -210,7 +210,6 @@ function astar(
   timeout = Inf,
   maxcost = Inf,
   enable_closedset = true,
-  kwargs...,
 )
   start_heuristic = heuristic(start, goal)
   start_cost = zero(start_heuristic)

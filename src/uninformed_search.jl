@@ -230,7 +230,7 @@ function _breadthfirst!(
 end
 
 """
-Executes a breadth first search given the neightbours function, the start and goal state.
+Executes a breadth first search given the neighbours function, the start and goal state.
 """
 function breadthfirst(
   neighbours,

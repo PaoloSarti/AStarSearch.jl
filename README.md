@@ -1,6 +1,6 @@
 # AStarSearch.jl
 
-[![Build Status](https://github.com/PaoloSarti/AStarSearch.jl/workflows/CI/badge.svg)](https://github.com/PaoloSarti/AStarSearch.jl/actions?query=workflow%3ACI+branch%3Amaster)
+[![Build Status](https://github.com/PaoloSarti/AStarSearch.jl/workflows/CI/badge.svg)](https://github.com/PaoloSarti/AStarSearch.jl/actions?query=workflow%3ACI+branch%3Amain)
 [![codecov](https://codecov.io/gh/PaoloSarti/AStarSearch.jl/branch/main/graph/badge.svg?token=So4UrAd64G)](https://codecov.io/gh/PaoloSarti/AStarSearch.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://paolosarti.github.io/AStarSearch.jl)
@@ -69,7 +69,7 @@ This algorithm searches first all the states at the same depth, ensuring that th
 
 #### Iterative Deepening
 
-This algorithm iteratively executes depth first search at different levels of `maxdepth` having the same properties as breadth first, with almost the speed of depth first search. But also here the `enable_closedset` is disabled by default as it uses depth first internally.
+This algorithm iteratively executes depth first search at different levels of `maxdepth` having the same properties as breadth first, with almost the speed of depth first search. The `enable_closedset` is enabled by default.
 
 ### Examples
 
