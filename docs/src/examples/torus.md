@@ -46,8 +46,6 @@ const ROWS = 4
 const COLS = 4
 
 const GOAL_STATE = TorusState(Matrix{Int8}(reshape(1:(ROWS * COLS), COLS, ROWS)'))
-const GOAL_POS =
-  [CartesianIndex(div(t - 1, COLS) + 1, mod(t - 1, COLS) + 1) for t = 1:(ROWS * COLS)]
 ```
 
 ## Successor Generation
@@ -109,12 +107,16 @@ h(s) = ⌈Σ dh(t) / COLS⌉  +  ⌈Σ dv(t) / ROWS⌉
 This heuristic is **admissible** (never overestimates) and **consistent** (monotone).
 
 ```julia
-function heuristic(s::TorusState, ::TorusState)
+function heuristic(s::TorusState, goal::TorusState)
+  goal_pos = Vector{CartesianIndex{2}}(undef, ROWS * COLS)
+  for r = 1:ROWS, c = 1:COLS
+    goal_pos[Int(goal.grid[r, c])] = CartesianIndex(r, c)
+  end
   total_h = 0
   total_v = 0
   for r = 1:ROWS, c = 1:COLS
     t = Int(s.grid[r, c])
-    gpos = GOAL_POS[t]
+    gpos = goal_pos[t]
     dr = abs(r - gpos[1])
     dc = abs(c - gpos[2])
     total_v += min(dr, ROWS - dr)

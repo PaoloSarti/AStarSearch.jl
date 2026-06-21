@@ -27,10 +27,6 @@ end
 # Goal: grid[i,j] = (i-1)*COLS + j
 const GOAL_STATE = TorusState(Matrix{Int8}(reshape(1:(ROWS * COLS), COLS, ROWS)'))
 
-# Precomputed goal position for each tile t → CartesianIndex(row, col)
-const GOAL_POS =
-  [CartesianIndex(div(t - 1, COLS) + 1, mod(t - 1, COLS) + 1) for t = 1:(ROWS * COLS)]
-
 # ---- Moves ----
 # A move shifts an entire row (left/right) or column (up/down) cyclically.
 
@@ -65,12 +61,16 @@ end
 # Admissible and consistent: one row/col shift reduces the corresponding
 # total distance by at most COLS/ROWS respectively.
 
-function heuristic(s::TorusState, ::TorusState)
+function heuristic(s::TorusState, goal::TorusState)
+  goal_pos = Vector{CartesianIndex{2}}(undef, ROWS * COLS)
+  for r = 1:ROWS, c = 1:COLS
+    goal_pos[Int(goal.grid[r, c])] = CartesianIndex(r, c)
+  end
   total_h = 0
   total_v = 0
   for r = 1:ROWS, c = 1:COLS
     t = Int(s.grid[r, c])
-    gpos = GOAL_POS[t]
+    gpos = goal_pos[t]
     dr = abs(r - gpos[1])
     dc = abs(c - gpos[2])
     total_v += min(dr, ROWS - dr)

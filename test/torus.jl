@@ -14,8 +14,6 @@
   Base.hash(s::TorusState) = hash(s.grid)
 
   TGOAL = TorusState(Matrix{Int8}(reshape(1:(TROWS * TCOLS), TCOLS, TROWS)'))
-  TGOAL_POS =
-    [CartesianIndex(div(t - 1, TCOLS) + 1, mod(t - 1, TCOLS) + 1) for t = 1:(TROWS * TCOLS)]
 
   function torus_nextstates(s::TorusState)
     states = Vector{TorusState}(undef, 2 * (TROWS + TCOLS))
@@ -43,12 +41,16 @@
     return states
   end
 
-  function torus_heuristic(s::TorusState, ::TorusState)
+  function torus_heuristic(s::TorusState, goal::TorusState)
+    goal_pos = Vector{CartesianIndex{2}}(undef, TROWS * TCOLS)
+    for r = 1:TROWS, c = 1:TCOLS
+      goal_pos[Int(goal.grid[r, c])] = CartesianIndex(r, c)
+    end
     total_h = 0
     total_v = 0
     for r = 1:TROWS, c = 1:TCOLS
       t = Int(s.grid[r, c])
-      gpos = TGOAL_POS[t]
+      gpos = goal_pos[t]
       dr = abs(r - gpos[1])
       dc = abs(c - gpos[2])
       total_v += min(dr, TROWS - dr)
