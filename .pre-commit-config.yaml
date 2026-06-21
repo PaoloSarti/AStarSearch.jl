@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: julia-tests
+        name: Julia tests
+        language: system
+        entry: julia --project=. -e "import Pkg; Pkg.test()"
+        pass_filenames: false
+        always_run: true
