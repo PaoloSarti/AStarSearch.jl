@@ -1,0 +1,23 @@
+version = 1
+revision = 2
+requires-python = ">=3.12"
+
+[[package]]
+name = "astar"
+version = "1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c5/19/028ff09c0fdb2c185816768c2557698f1aa7ecf09466fb246d8bfe13556d/astar-1.1.tar.gz", hash = "sha256:5627ca3db21f8a6cd9df483610355069def0dd687a857ce6349f50a8e93759be", size = 6574, upload-time = "2026-03-12T18:08:58.242Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5f/b7/d6142de5410839f11557460555cc1a753f6a9fc7c6114ea9515a9c358522/astar-1.1-py3-none-any.whl", hash = "sha256:9c8c013a58e2de4ffd0fb97bd994387539484fdd416afe4a540404ab9289ef86", size = 7385, upload-time = "2026-03-12T18:08:57.066Z" },
+]
+
+[[package]]
+name = "astar-benchmark"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "astar" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "astar", specifier = ">=1.1" }]

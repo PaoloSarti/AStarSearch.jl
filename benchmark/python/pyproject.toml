@@ -1,0 +1,8 @@
+[project]
+name = "astar-benchmark"
+version = "0.1.0"
+description = "Python A* benchmark for comparison with AStarSearch.jl"
+requires-python = ">=3.12"
+dependencies = [
+    "astar>=1.1",
+]
